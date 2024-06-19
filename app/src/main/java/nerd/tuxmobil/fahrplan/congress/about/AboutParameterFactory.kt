@@ -41,7 +41,8 @@ class AboutParameterFactory(
 
             usageNote = resourceResolving.getString(R.string.usage),
             appDisclaimer = if (buildConfig.showAppDisclaimer) resourceResolving.getString(R.string.app_disclaimer) else "",
-            logoCopyright = Html(resourceResolving.getString(R.string.copyright_logo)),
+            logoCopyright = if (resourceResolving.getString(R.string.copyright_logo).isNullOrEmpty())
+                Empty else Html(resourceResolving.getString(R.string.copyright_logo)),
 
             translationPlatform = textResourceOf(R.string.about_translation_platform, buildConfig.translationPlatformUrl),
 
