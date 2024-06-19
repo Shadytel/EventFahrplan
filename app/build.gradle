@@ -92,7 +92,11 @@ android {
             applicationId "org.toorcamp.app.eventfahrplan"
             buildConfigField "String", "GOOGLE_PLAY_URL", '"https://play.google.com/store/apps/details?id=org.toorcamp.app.eventfahrplan"'
             buildConfigField "String", "F_DROID_URL", '""'
-            buildConfigField "String", "SCHEDULE_URL", '"https://ky0lo.com/schedule.xml"'
+            buildConfigField "String", "TRANSLATION_PLATFORM_URL", '""'
+            buildConfigField "String", "SOURCE_CODE_URL", '"https://github.com/Shadytel/EventFahrplan"'
+            buildConfigField "String", "ISSUES_URL", '"https://github.com/Shadytel/EventFahrplan/issues"'
+            buildConfigField "String", "DATA_PRIVACY_STATEMENT_DE_URL", '""'
+            buildConfigField "String", "SCHEDULE_URL", '"https://labs.shady.tel/EventFahrplan/Toorcamp2024/schedule.xml"'
             buildConfigField "String", "EVENT_URL", '""'
             buildConfigField "String", "EVENT_WEBSITE_URL", '"https://toorcamp.org/"'
             buildConfigField "String", "EVENT_POSTAL_ADDRESS", '"107 Doe Bay Rd, Olga, WA 98279"'
@@ -105,7 +109,7 @@ android {
             buildConfigField "boolean", "ENABLE_ENGELSYSTEM_SHIFTS", "false"
             resValue("string", "preference_hint_engelsystem_json_export_url", '""')
             buildConfigField "String", "SOCIAL_MEDIA_HASHTAGS_HANDLES", '"#toorcamp"'
-            buildConfigField "String", "TRACE_DROID_EMAIL_ADDRESS", '"supersat@gmail.com"'
+            buildConfigField "String", "TRACE_DROID_EMAIL_ADDRESS", '"eventfahrplan@shady.tel"'
             buildConfigField "String", "SCHEDULE_FEEDBACK_URL", '""'
         }
         ccc37c3 {
