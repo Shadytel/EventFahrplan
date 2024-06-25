@@ -15,15 +15,25 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.widget.ContentLoadingProgressBar
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.OnBackStackChangedListener
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import info.metadude.android.eventfahrplan.commons.flow.observe
 import nerd.tuxmobil.fahrplan.congress.R
 import nerd.tuxmobil.fahrplan.congress.about.AboutDialog
@@ -56,13 +66,7 @@ import nerd.tuxmobil.fahrplan.congress.sidepane.OnSidePaneCloseListener
 import nerd.tuxmobil.fahrplan.congress.utils.ConfirmationDialog.OnConfirmationDialogClicked
 import nerd.tuxmobil.fahrplan.congress.utils.showWhenLockedCompat
 
-class MainActivity : BaseActivity(),
-    OnSidePaneCloseListener,
-    OnSessionListClick,
-    OnSessionClickListener,
-    OnSessionItemClickListener,
-    OnBackStackChangedListener,
-    OnConfirmationDialogClicked {
+class MainActivity : AppCompatActivity() {
 
     companion object {
 
@@ -94,7 +98,6 @@ class MainActivity : BaseActivity(),
     }
 
     private lateinit var notificationHelper: NotificationHelper
-    private lateinit var keyguardManager: KeyguardManager
     private lateinit var errorMessageFactory: ErrorMessage.Factory
     private lateinit var progressBar: ContentLoadingProgressBar
     private var progressDialog: ProgressDialog? = null
@@ -102,38 +105,50 @@ class MainActivity : BaseActivity(),
         MainViewModelFactory(AppRepository, notificationHelper)
     }
 
-    private var isScreenLocked = false
     private var isAlarmsInSidePane = false
     private var isFavoritesInSidePane = false
     private var shouldScrollToCurrent = true
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        showWhenLockedCompat()
-    }
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         instance = this
-        setContentView(R.layout.main_layout)
+        setContentView(R.layout.drawer_layout)
 
         notificationHelper = NotificationHelper(this)
 
-        keyguardManager = getSystemService()!!
         errorMessageFactory = ErrorMessage.Factory(this)
-        val toolbar = requireViewByIdCompat<Toolbar>(R.id.toolbar)
-        progressBar = requireViewByIdCompat(R.id.progress)
+        val toolbar: Toolbar = ActivityCompat.requireViewById(this, R.id.new_toolbar)
+        //progressBar = requireViewByIdCompat(R.id.progress)
 
         setSupportActionBar(toolbar)
+
+        /*
         supportActionBar!!.setTitle(R.string.fahrplan)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
         supportActionBar!!.setDefaultDisplayHomeAsUpEnabled(true)
         val actionBarColor = ContextCompat.getColor(this, R.color.colorActionBar)
         supportActionBar!!.setBackgroundDrawable(ColorDrawable(actionBarColor))
+         */
+
+        val drawerLayout: DrawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val navView: NavigationView = findViewById<NavigationView>(R.id.nav_view)
+        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.nav_home,
+            ), drawerLayout
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
 
         TraceDroidEmailSender.sendStackTraces(this)
-        resetProgressDialog()
+        //resetProgressDialog()
 
+        /*
         supportFragmentManager.addOnBackStackChangedListener(this)
         if (findViewById<View>(R.id.schedule) != null && findFragment(FahrplanFragment.FRAGMENT_TAG) == null) {
             replaceFragment(R.id.schedule, FahrplanFragment(), FahrplanFragment.FRAGMENT_TAG)
@@ -145,8 +160,21 @@ class MainActivity : BaseActivity(),
         observeViewModel()
         onSessionAlarmNotificationTapped(intent)
         viewModel.checkPostNotificationsPermission()
+        */
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.mainmenu, menu)
+        return true
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    /*
     private fun observeViewModel() {
         viewModel.loadScheduleUiState.observe(this) {
             updateUi(it)
@@ -163,7 +191,7 @@ class MainActivity : BaseActivity(),
             }
         }
         viewModel.scheduleChangesParameter.observe(this) { (scheduleVersion, changeStatistic) ->
-            showChangesDialog(scheduleVersion, changeStatistic)
+            //showChangesDialog(scheduleVersion, changeStatistic)
         }
         viewModel.showAbout.observe(this) {
             showAboutDialog()
@@ -219,13 +247,12 @@ class MainActivity : BaseActivity(),
 
     override fun onResume() {
         super.onResume()
-        isScreenLocked = keyguardManager.isKeyguardLocked
         val sidePaneView = findViewById<FragmentContainerView>(R.id.detail)
         if (sidePaneView != null && isAlarmsInSidePane) {
-            sidePaneView.isVisible = !isScreenLocked
+            sidePaneView.isVisible = true;
         }
         if (sidePaneView != null && isFavoritesInSidePane) {
-            sidePaneView.isVisible = !isScreenLocked
+            sidePaneView.isVisible = true;
         }
     }
 
@@ -234,7 +261,9 @@ class MainActivity : BaseActivity(),
         menuInflater.inflate(R.menu.mainmenu, menu)
         return true
     }
+     */
 
+    /*
     private fun showChangesDialog(scheduleVersion: String, changeStatistic: ChangeStatistic) {
         val fragment = findFragment(ChangesDialog.FRAGMENT_TAG)
         if (fragment == null) {
@@ -243,6 +272,7 @@ class MainActivity : BaseActivity(),
                 .show(supportFragmentManager, ChangesDialog.FRAGMENT_TAG)
         }
     }
+     */
 
     private fun showAboutDialog() {
         val transaction = supportFragmentManager.beginTransaction()
@@ -253,10 +283,10 @@ class MainActivity : BaseActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val functionByOptionItemId = mapOf(
             R.id.menu_item_about to { viewModel.showAboutDialog() },
-            R.id.menu_item_alarms to { openAlarms() },
+            //R.id.menu_item_alarms to { openAlarms() },
             R.id.menu_item_settings to { SettingsActivity.startForResult(this) },
-            R.id.menu_item_schedule_changes to { openSessionChanges() },
-            R.id.menu_item_favorites to { openFavorites() }
+            //R.id.menu_item_schedule_changes to { openSessionChanges() },
+            //R.id.menu_item_favorites to { openFavorites() }
         )
         return when (val function = functionByOptionItemId[item.itemId]) {
             null -> {
@@ -278,6 +308,7 @@ class MainActivity : BaseActivity(),
         }
     }
 
+    /*
     override fun onSidePaneClose(fragmentTag: String) {
         findViewById<View>(R.id.detail)?.let {
             it.isVisible = false
@@ -418,4 +449,5 @@ class MainActivity : BaseActivity(),
     override fun onSessionItemClick(sessionId: String) {
         viewModel.openSessionDetails(sessionId)
     }
+     */
 }

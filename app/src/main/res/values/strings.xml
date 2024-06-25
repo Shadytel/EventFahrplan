@@ -115,7 +115,8 @@
     <string name="about_source_code">Source code</string>
     <string name="about_translation_platform">Translation platform</string>
     <string name="copyright_notes" translatable="false">
-        Copyright 2013-2024 johnjohndoe.
+        Copyright 2024 Karl Koscher.
+        \nCopyright 2013-2024 johnjohndoe.
         \nCopyright 2011-2015 Daniel Dorau.
         \n\nContributions from 0x5ubt13, Adriano Pereira Junior, Akarsh Seggemu, Александр Рознятовский, aligoush, Andrea Marziali, Andy Scherzinger, Andreas Schildbach, Animesh Verma, bashtian, bjoernb, Björn Olsson Jarl, ButterflyOfFire, cacarrara, Caio Volpato, Chase, cketti, codingcatgirl, Dominik Stadler, entropynil, erebion, ideadapt, isi_ko404, IsoLinearCHiP, Jasper van der Graaf, Joergi, Julius Vitkauskas, koelnkalkverbot, Larissa Yasin, lepawa, ligi, lucadelu, Luis Azcuaga, María Arias de Reyna, Mateus Baptista, Matthias Geisler, Matthias Hunstock, Matthias Mair, MichaelRocks, Miguel Beltran, mtpa, Nghiem Xuan Hien, NiciDieNase, Noemis, Omicron, Poschi, Qwertele, Róbert Papp, rotrot, Sjors van Mierlo, Stefan Medack, SubOptimal, Su Jade, taseret, Teeranai.P, Torsten Grote, Victor Herasme, Vladimir Alabov, Yanicka.
         \n\nPortions copyright 2008-2011 The K-9 Dog Walkers and 2006-2013 the Android Open Source Project.
@@ -301,5 +302,12 @@
     <string name="validation_error_url_without_api_key">
         <xliff:g example="Engelsystem" id="urlType">%s</xliff:g> URL without API key.
     </string>
+
+    <!-- Nav bar -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Toorcamp 2024</string>
+    <string name="nav_header_subtitle">Status Unverified</string>
+    <string name="nav_header_desc">Navigation header</string>
 
 </resources>

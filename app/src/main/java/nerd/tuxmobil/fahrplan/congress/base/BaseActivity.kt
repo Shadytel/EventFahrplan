@@ -8,7 +8,7 @@ import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import nerd.tuxmobil.fahrplan.congress.utils.ActivityHelper.navigateUp
+// import nerd.tuxmobil.fahrplan.congress.utils.ActivityHelper.navigateUp
 
 abstract class BaseActivity : AppCompatActivity {
 
@@ -17,12 +17,14 @@ abstract class BaseActivity : AppCompatActivity {
     @ContentView
     constructor(@LayoutRes contentLayoutId: Int) : super(contentLayoutId)
 
+   /*
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> return navigateUp()
         }
         return super.onOptionsItemSelected(item)
     }
+    */
 
     protected fun addFragment(
         @IdRes containerViewId: Int,

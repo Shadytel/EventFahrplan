@@ -27,4 +27,6 @@
     <item name="about_percentage_width" type="integer">70</item>
     <dimen name="about_padding_horizontal">32dp</dimen>
 
+    <dimen name="fab_margin">48dp</dimen>
+
 </resources>

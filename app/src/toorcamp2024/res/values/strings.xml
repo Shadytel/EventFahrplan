@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Toorcamp</string>
+    <string name="app_name" translatable="false">Toorcamp</string>
     <string name="app_hardcoded_subtitle">
         June 26–30 2024, Doe Bay, Orcas Island
     </string>
@@ -9,4 +9,5 @@
     <string name="about_logo_content_description">
         Toorcamp logo
     </string>
+    <string name="about_data_privacy_statement_german"></string>
 </resources>

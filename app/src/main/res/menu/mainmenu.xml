@@ -2,19 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-            android:id="@+id/menu_item_favorites"
-            android:icon="@drawable/ic_action_star_list"
-            app:showAsAction="ifRoom"
-            android:title="@string/menu_item_title_favorites"
-            android:titleCondensed="@string/menu_item_title_favorites">
-    </item>
+        android:id="@+id/menu_item_favorites"
+        android:icon="@drawable/ic_action_star_list"
+        android:title="@string/menu_item_title_favorites"
+        android:titleCondensed="@string/menu_item_title_favorites"
+        app:showAsAction="ifRoom"></item>
     <item
-            android:id="@+id/menu_item_alarms"
-            android:icon="@drawable/ic_action_bell_list"
-            app:showAsAction="ifRoom"
-            android:title="@string/menu_item_title_alarms"
-            android:titleCondensed="@string/menu_item_title_alarms">
-    </item>
+        android:id="@+id/menu_item_alarms"
+        android:icon="@drawable/ic_action_bell_list"
+        android:title="@string/menu_item_title_alarms"
+        android:titleCondensed="@string/menu_item_title_alarms"
+        app:showAsAction="never|ifRoom"></item>
     <item
             android:id="@+id/menu_item_schedule_changes"
             android:icon="@drawable/ic_action_healing_list"

@@ -101,7 +101,7 @@ class ChangesDialog : DialogFragment() {
         flagChangesAsSeen()
         val activity = requireActivity()
         if (activity is MainActivity) {
-            activity.openSessionChanges()
+            //activity.openSessionChanges()
         }
     }
 

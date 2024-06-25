@@ -6,6 +6,7 @@ import androidx.core.app.TaskStackBuilder
 
 object ActivityHelper {
 
+/*
     fun Activity.navigateUp(): Boolean {
         val upIntent = NavUtils.getParentActivityIntent(this)!!
         if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
@@ -23,5 +24,7 @@ object ActivityHelper {
         }
         return true
     }
+    
+ */
 
 }

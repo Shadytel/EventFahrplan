@@ -34,7 +34,7 @@ import nerd.tuxmobil.fahrplan.congress.extensions.requireViewByIdCompat
 import nerd.tuxmobil.fahrplan.congress.extensions.withArguments
 import nerd.tuxmobil.fahrplan.congress.models.Session
 import nerd.tuxmobil.fahrplan.congress.sharing.SessionSharer
-import nerd.tuxmobil.fahrplan.congress.utils.ActivityHelper.navigateUp
+//import nerd.tuxmobil.fahrplan.congress.utils.ActivityHelper.navigateUp
 import nerd.tuxmobil.fahrplan.congress.utils.ConfirmationDialog
 import nerd.tuxmobil.fahrplan.congress.utils.ContentDescriptionFormatter
 import nerd.tuxmobil.fahrplan.congress.utils.SessionPropertiesFormatter
@@ -232,6 +232,7 @@ class StarredListFragment :
         }
     }
 
+    /*
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_item_share_favorites,
@@ -253,6 +254,7 @@ class StarredListFragment :
         }
         return super.onOptionsItemSelected(item)
     }
+     */
 
     override fun onItemCheckedStateChanged(
         mode: ActionMode,

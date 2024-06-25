@@ -5,7 +5,6 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/main_background"
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
@@ -14,25 +13,6 @@
         layout="@layout/app_bar_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-    <!--
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        style="@style/ToolBar"
-        app:contentInsetStart="@dimen/tool_bar_content_inset_start" />
-        -->
-
-    <androidx.core.widget.ContentLoadingProgressBar
-        android:id="@+id/progress"
-        style="@style/ProgressBar"
-        android:layout_below="@id/toolbar"
-        tools:background="@android:color/transparent"
-        tools:visibility="visible" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/schedule"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/toolbar" />
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
@@ -42,5 +22,4 @@
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
-
 </androidx.drawerlayout.widget.DrawerLayout>

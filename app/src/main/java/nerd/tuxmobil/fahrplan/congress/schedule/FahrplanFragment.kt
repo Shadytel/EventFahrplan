@@ -113,7 +113,6 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
     private lateinit var viewModel: FahrplanViewModel
 
     private val logging = Logging.get()
-    private var onSessionClickListener: OnSessionClickListener? = null
     private var lastSelectedSession: Session? = null
     private var displayDensityScale = 0f
 
@@ -134,16 +133,6 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
             customEngelsystemRoomName = customEngelsystemRoomName
         )
         viewModel = ViewModelProvider(this, viewModelFactory)[FahrplanViewModel::class.java]
-        onSessionClickListener = if (context is OnSessionClickListener) {
-            context
-        } else {
-            error("$context must implement OnSessionClickListener")
-        }
-    }
-
-    override fun onDetach() {
-        onSessionClickListener = null
-        super.onDetach()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -301,21 +290,23 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         addRoomTitleViews(roomTitlesRowLayout, columnWidth, scheduleData.roomNames)
         addRoomColumns(horizontalScroller, columnWidth, scheduleData, useDeviceTimeZone)
 
+        /*
         MainActivity.instance.shouldScheduleScrollToCurrentTimeSlot {
             if (!viewModel.preserveVerticalScrollPosition) {
                 viewModel.scrollToCurrentSession()
                 viewModel.preserveVerticalScrollPosition = false
             }
         }
+        */
         updateNavigationMenuSelection(numDays, dayIndex)
     }
 
     private fun updateNavigationMenuSelection(numDays: Int, dayIndex: Int) {
         val activity = requireActivity() as AppCompatActivity
         val actionbar = activity.supportActionBar
-        if (actionbar != null && numDays > 1) {
-            actionbar.setSelectedNavigationItem(dayIndex - 1)
-        }
+        // if (actionbar != null && numDays > 1) {
+        //     actionbar.setSelectedNavigationItem(dayIndex - 1)
+        // }
     }
 
     /**
@@ -432,9 +423,11 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         horizontalSnapScrollView?.post { horizontalSnapScrollView.scrollToColumn(roomIndex, fast = false) }
         val activity = requireActivity()
         val sidePaneView = activity.findViewById<FragmentContainerView?>(R.id.detail)
+        /*
         if (sidePaneView != null && onSessionClickListener != null) {
             onSessionClickListener!!.onSessionClick(sessionId)
         }
+         */
     }
 
     private fun fillTimes(parameters: List<TimeTextViewParameter>) {
@@ -466,7 +459,7 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
             "A session must be assigned to the 'tag' attribute of the session view."
         } as Session
         logging.d(LOG_TAG, """Click on: "${session.title}"""")
-        onSessionClickListener?.onSessionClick(session.sessionId)
+        //onSessionClickListener?.onSessionClick(session.sessionId)
     }
 
     /**
@@ -475,6 +468,7 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
      * The empty list is important for [updateNavigationMenuSelection] to work correctly.
      */
     private fun buildNavigationMenu(dayMenuEntries: List<String>, numDays: Int) {
+        /*
         val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
         actionBar!!.navigationMode = NAVIGATION_MODE_LIST
         val arrayAdapter = ArrayAdapter(
@@ -484,6 +478,7 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         )
         arrayAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_list_item)
         actionBar.setListNavigationCallbacks(arrayAdapter, OnDaySelectedListener(numDays))
+         */
     }
 
     private fun showAlarmTimePicker() {
@@ -601,6 +596,7 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         Toast.makeText(requireContext(), R.string.alarms_disabled_schedule_exact_alarm_permission_missing, Toast.LENGTH_LONG).show()
     }
 
+    /*
     private inner class OnDaySelectedListener(private val numDays: Int) : OnNavigationListener {
 
         private var isSynthetic = true
@@ -619,5 +615,5 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
 
         private fun runsAtLeastOnAndroidNougat() = Build.VERSION.SDK_INT > Build.VERSION_CODES.M
     }
-
+    */
 }

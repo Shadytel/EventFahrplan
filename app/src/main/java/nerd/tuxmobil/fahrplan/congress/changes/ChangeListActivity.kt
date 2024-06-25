@@ -28,7 +28,7 @@ class ChangeListActivity :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_change_list)
-        initToolbar()
+        //initToolbar()
         if (savedInstanceState == null) {
             val fragment = ChangeListFragment.newInstance(sidePane = false)
             addFragment(R.id.container, fragment, ChangeListFragment.FRAGMENT_TAG)
