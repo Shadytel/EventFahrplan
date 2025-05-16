@@ -12,12 +12,13 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '17'
+          cache: 'gradle'
             
       - name: Build the app
-        run: ./gradlew assembleCcc37c3
+        run: ./gradlew assembleCcc38c3
 
       - name: Unit Tests
-        run: ./gradlew testDebugUnitTest :engelsystem:test testCcc37c3DebugUnitTest assembleCcc37c3Debug lintAnalyzeCcc37c3Debug
+        run: ./gradlew testDebugUnitTest testCcc38c3DebugUnitTest assembleCcc38c3Debug lintAnalyzeCcc38c3Debug
 
       - name: Publish unit-test results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -70,15 +71,17 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Instrumentation Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -metrics-collection -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew :database:connectedAndroidTest
+          script:
+            ./gradlew :app:connectedCcc38c3DebugAndroidTest :database:connectedAndroidTest && killall -INT crashpad_handler || true
 
       - name: Publish unit-test results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2

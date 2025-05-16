@@ -99,7 +99,8 @@ class AlarmsViewModelTest {
         )
         val screenNavigation = mock<ScreenNavigation>()
         doNothing().`when`(screenNavigation).navigateToSessionDetails(any())
-        val viewModel = createViewModel(repository, screenNavigation = screenNavigation)
+        val viewModel = createViewModel(repository)
+        viewModel.screenNavigation = screenNavigation
         viewModel.alarmsState.take(1).collect { state ->
             assertThat(state).isInstanceOf(Success::class.java)
             val success = state as Success
@@ -180,19 +181,15 @@ class AlarmsViewModelTest {
         on { sessionsWithoutShifts } doReturn emptyFlow()
         on { readAlarms(any()) } doReturn alarmsList
         on { readUseDeviceTimeZoneEnabled() } doReturn true
-        on { deleteAlarmForSessionId(any()) } doReturn 0
-        on { deleteAllAlarms() } doReturn 0
     }
 
     private fun createViewModel(
         repository: AppRepository,
         alarmServices: AlarmServices = mock(),
-        screenNavigation: ScreenNavigation = mock(),
     ) = AlarmsViewModel(
         repository = repository,
         executionContext = TestExecutionContext,
         alarmServices = alarmServices,
-        screenNavigation = screenNavigation,
         alarmsStateFactory = createAlarmsStateFactory(),
     )
 
@@ -213,7 +210,7 @@ class AlarmsViewModelTest {
         alarmStartsAt: Long = 1620909000000
     ) = Alarm(
         alarmTimeInMin = alarmTimeInMin,
-        day = 2,
+        dayIndex = 2,
         displayTime = -1,
         sessionId = sessionId,
         sessionTitle = "Unused",

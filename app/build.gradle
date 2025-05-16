@@ -7,6 +7,7 @@ ext.set("APP_VERSION", "${gitSha()}")
 
 apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
+apply plugin: "org.jetbrains.kotlin.plugin.compose"
 apply plugin: "com.google.devtools.ksp"
 apply plugin: "de.mobilej.unmock"
 apply plugin: "com.getkeepsafe.dexcount"
@@ -19,16 +20,19 @@ android {
     buildToolsVersion = Android.buildToolsVersion
 
     defaultConfig {
-        versionCode 102
-        versionName "1.64.1"
+        versionCode 108
+        versionName "1.70.0"
         minSdk Android.minSdkVersion
         targetSdk Android.targetSdkVersion
         base.archivesName = "Fahrplan-$versionName"
 
         vectorDrawables.useSupportLibrary = true // allows using fillColor, fillType, strokeColor functionalities below Android 7.0 (API 24)
 
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments runnerBuilder: "de.mannodermaus.junit5.AndroidJUnit5Builder"
+
         // Build information
-        resValue("string", "build_time", "\"${buildTime()}\"")
+        resValue("string", "modification_time", "\"${modificationTime()}\"")
         resValue("string", "git_sha", "\"${gitSha()}\"")
 
         // Build configuration / feature flags
@@ -50,6 +54,9 @@ android {
         buildConfigField "boolean", "ENGAGE_GOOGLE_BETA_TESTING", "true"
         buildConfigField "boolean", "ENGAGE_GOOGLE_PLAY_RATING", "true"
         buildConfigField "boolean", "ENGAGE_LANDSCAPE_ORIENTATION", "true"
+        buildConfigField "boolean", "ENABLE_FOSDEM_ROOM_STATES", "false"
+        buildConfigField "String", "FOSDEM_ROOM_STATES_URL", '""'
+        buildConfigField "String", "FOSDEM_ROOM_STATES_PATH", '""'
     }
 
     buildFeatures {
@@ -57,17 +64,15 @@ android {
         compose true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = Compose.Versions.compiler
-    }
-
     buildTypes {
         debug {
+            resValue("string", "build_time", "\"${buildTime()}\"")
             versionNameSuffix "-DEBUG"
             applicationIdSuffix ".debug"
             debuggable true
         }
         release {
+            resValue("string", "build_time", "")
             minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android.txt"),
                     "proguard-rules/proguard-project.txt",
@@ -80,7 +85,7 @@ android {
         toorcamp2024
         ccc37c3
         cccamp2023
-        jev2022
+        ccc38c3
     }
 
     def defaultDimension = "default"
@@ -155,23 +160,25 @@ android {
             buildConfigField "String", "TRACE_DROID_EMAIL_ADDRESS", '"tobias.preuss+camp2023@googlemail.com"'
             buildConfigField "String", "SCHEDULE_FEEDBACK_URL", '"https://frab.cccv.de/en/camp2023/public/events/%s/feedback/new"'
         }
-        jev2022 {
+        ccc38c3 {
             dimension defaultDimension
-            applicationId "info.metadude.android.rc3.schedule"
-            versionName "${defaultConfig.versionName}-JEV-Edition"
-            buildConfigField "String", "GOOGLE_PLAY_URL", '"https://play.google.com/store/apps/details?id=info.metadude.android.rc3.schedule"'
-            buildConfigField "String", "F_DROID_URL", '"https://f-droid.org/packages/info.metadude.android.rc3.schedule"'
-            buildConfigField "String", "SCHEDULE_URL", '"https://data.c3voc.de/jev22/everything.schedule.xml"'
+            applicationId "info.metadude.android.congress.schedule"
+            buildConfigField "String", "GOOGLE_PLAY_URL", '"https://play.google.com/store/apps/details?id=info.metadude.android.congress.schedule"'
+            buildConfigField "String", "F_DROID_URL", '"https://f-droid.org/packages/info.metadude.android.congress.schedule"'
+            buildConfigField "String", "SCHEDULE_URL", '"https://api.events.ccc.de/congress/2024/schedule.xml"'
             buildConfigField "String", "EVENT_URL", '""'
-            buildConfigField "String", "EVENT_WEBSITE_URL", '"https://events.ccc.de/2022/11/28/dezentral-2022/"'
-            buildConfigField "String", "SERVER_BACKEND_TYPE", '"pretalx"'
-            buildConfigField "boolean", "SHOW_APP_DISCLAIMER", "true"
+            buildConfigField "String", "EVENT_WEBSITE_URL", '"https://events.ccc.de/congress/2024/"'
+            buildConfigField "String", "EVENT_POSTAL_ADDRESS", '"Congressplatz 1, 20355 Hamburg"'
+            buildConfigField "String", "SERVER_BACKEND_TYPE", '"frab"'
+            buildConfigField "boolean", "SHOW_APP_DISCLAIMER", "false"
+            buildConfigField "boolean", "ENGAGE_C3NAV_APP_INSTALLATION", "true"
+            buildConfigField "String", "C3NAV_URL", '"https://38c3.c3nav.de/l/"'
             buildConfigField "boolean", "ENABLE_ALTERNATIVE_SCHEDULE_URL", "true"
             buildConfigField "boolean", "ENABLE_CHAOSFLIX_EXPORT", "true"
             buildConfigField "boolean", "ENABLE_ENGELSYSTEM_SHIFTS", "true"
-            resValue("string", "preference_hint_engelsystem_json_export_url", '"https://your.engelsystem.de/shifts-json-export?key=YOUR_KEY"')
-            buildConfigField "String", "SOCIAL_MEDIA_HASHTAGS_HANDLES", '"#jev #fahrplan #hip #fireshonks #xrelog22 #rtc22 @cbase"'
-            buildConfigField "String", "TRACE_DROID_EMAIL_ADDRESS", '"tobias.preuss+jev@googlemail.com"'
+            resValue("string", "preference_hint_engelsystem_json_export_url", '"https://engel.events.ccc.de/shifts-json-export?key=YOUR_KEY"')
+            buildConfigField "String", "SOCIAL_MEDIA_HASHTAGS_HANDLES", '"#38c3 #fahrplan"'
+            buildConfigField "String", "TRACE_DROID_EMAIL_ADDRESS", '"tobias.preuss+38c3@googlemail.com"'
             buildConfigField "String", "SCHEDULE_FEEDBACK_URL", '""'
         }
     }
@@ -200,6 +207,16 @@ android {
                 "-opt-in=kotlin.RequiresOptIn"
         ]
     }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+            ]
+        }
+    }
+
 }
 
 unMock {
@@ -226,7 +243,6 @@ dependencies {
     implementation project(":commons")
     implementation project(":database")
     implementation project(":network")
-    implementation project(":engelsystem")
 
     def composeBom = platform(Compose.bom)
     implementation composeBom
@@ -237,22 +253,26 @@ dependencies {
 
     implementation Compose.material
 
+    implementation Libs.activityCompose
     implementation Libs.appCompat
     implementation Libs.betterLinkMovementMethod
     implementation Libs.constraintLayout
     implementation Libs.coreKtx
     implementation Libs.emailIntentBuilder
+    implementation Libs.engelsystem
+    implementation Libs.fragmentCompose
+    implementation Libs.htmlConverter
     implementation Libs.kotlinCoroutinesAndroid
     implementation Libs.kotlinCoroutinesCore
     implementation Libs.lifecycleViewModel
-    implementation Libs.markwonCore
-    implementation Libs.markwonLinkify
+    implementation Libs.markdownRender
     implementation Libs.material
     implementation Libs.moshi
     ksp Libs.moshiCodeGen
     implementation Libs.okhttp
     implementation Libs.okhttpLoggingInterceptor
     implementation Libs.preference
+    implementation Libs.roomStates
     implementation Libs.snackengagePlayrate
     implementation Libs.tracedroid
 
@@ -261,6 +281,7 @@ dependencies {
     testImplementation Libs.coreTesting
     testImplementation Libs.junitJupiterApi
     testRuntimeOnly Libs.junitJupiterEngine
+    testRuntimeOnly Libs.junitPlatformLauncher
     testImplementation Libs.junitJupiterParams
     testImplementation(Libs.kotlinCoroutinesTest) {
         // workaround for https://github.com/Kotlin/kotlinx.coroutines/issues/2023
@@ -271,6 +292,12 @@ dependencies {
     testImplementation Libs.turbine
 
     unmock Libs.robolectric
+
+    androidTestImplementation Libs.androidTestCore
+    androidTestRuntimeOnly Libs.androidTestRunner
+    androidTestImplementation Libs.junitJupiterApi
+    androidTestImplementation Libs.junitJupiterParams
+    androidTestImplementation Libs.truth
 }
 
 def gitSha() {
@@ -282,8 +309,22 @@ def gitSha() {
     return res
 }
 
+def modificationTime() {
+    // https://reproducible-builds.org/docs/source-date-epoch/
+    // Set based on the current commit that is being built.
+    def committedAt = System.getenv('SOURCE_DATE_EPOCH')
+    if (committedAt == null || committedAt.length() == 0) {
+        committedAt = "git log -1 --format=%ct".execute([], project.rootDir).text.trim()
+    }
+    return getFormattedDate(new Date(Long.parseLong(committedAt) * 1000))
+}
+
 static def buildTime() {
-    return new Date().format("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
+    return getFormattedDate(new Date())
+}
+
+static def getFormattedDate(Date date) {
+    return date.format("yyyy-MM-dd'T'HH:mm'Z'", TimeZone.getTimeZone("UTC"))
 }
 
 def hasSigningConfig(String flavor) {

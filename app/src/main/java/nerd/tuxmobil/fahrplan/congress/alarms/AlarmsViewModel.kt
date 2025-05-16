@@ -21,10 +21,11 @@ internal class AlarmsViewModel(
     private val repository: AppRepository = AppRepository,
     private val executionContext: ExecutionContext,
     private val alarmServices: AlarmServices,
-    private val screenNavigation: ScreenNavigation,
     private val alarmsStateFactory: AlarmsStateFactory,
 
 ) : ViewModel() {
+
+    var screenNavigation: ScreenNavigation? = null
 
     private val useDeviceTimeZone: Boolean
         get() = repository.readUseDeviceTimeZoneEnabled()
@@ -44,17 +45,17 @@ internal class AlarmsViewModel(
     }
 
     private fun navigateToSessionDetails(value: SessionAlarmParameter) {
-        screenNavigation.navigateToSessionDetails(value.sessionId)
+        screenNavigation?.navigateToSessionDetails(value.sessionId)
     }
 
     private fun deleteSessionAlarm(value: SessionAlarmParameter) {
         launch {
             repository.deleteAlarmForSessionId(value.sessionId)
             val alarm = SchedulableAlarm(
-                day = value.dayIndex,
+                dayIndex = value.dayIndex,
                 sessionId = value.sessionId,
                 sessionTitle = value.title,
-                startTime = value.firesAt
+                startTime = value.firesAt,
             )
             alarmServices.discardSessionAlarm(alarm)
         }

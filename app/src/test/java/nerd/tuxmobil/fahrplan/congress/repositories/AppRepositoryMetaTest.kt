@@ -4,8 +4,8 @@ import android.content.ContentValues
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import info.metadude.android.eventfahrplan.commons.testing.MainDispatcherTestExtension
-import info.metadude.android.eventfahrplan.database.contract.FahrplanContract.MetasTable.Columns.ETAG
 import info.metadude.android.eventfahrplan.database.contract.FahrplanContract.MetasTable.Columns.NUM_DAYS
+import info.metadude.android.eventfahrplan.database.contract.FahrplanContract.MetasTable.Columns.SCHEDULE_ETAG
 import info.metadude.android.eventfahrplan.database.contract.FahrplanContract.MetasTable.Columns.SCHEDULE_LAST_MODIFIED
 import info.metadude.android.eventfahrplan.database.contract.FahrplanContract.MetasTable.Columns.SUBTITLE
 import info.metadude.android.eventfahrplan.database.contract.FahrplanContract.MetasTable.Columns.TIME_ZONE_NAME
@@ -20,8 +20,6 @@ import org.mockito.kotlin.mock
 import org.threeten.bp.ZoneId
 import info.metadude.android.eventfahrplan.database.models.HttpHeader as HttpHeaderDatabaseModel
 import info.metadude.android.eventfahrplan.database.models.Meta as MetaDatabaseModel
-import info.metadude.android.eventfahrplan.network.models.HttpHeader as HttpHeaderNetworkModel
-import info.metadude.android.eventfahrplan.network.models.Meta as MetaNetworkModel
 import nerd.tuxmobil.fahrplan.congress.models.HttpHeader as HttpHeaderAppModel
 import nerd.tuxmobil.fahrplan.congress.models.Meta as MetaAppModel
 
@@ -47,7 +45,7 @@ class AppRepositoryMetaTest {
                 sessionsDatabaseRepository = mock(),
                 metaDatabaseRepository = metaDatabaseRepository,
                 scheduleNetworkRepository = mock(),
-                engelsystemNetworkRepository = mock(),
+                engelsystemRepository = mock(),
                 sharedPreferencesRepository = mock(),
                 sessionsTransformer = mock()
             )
@@ -65,7 +63,7 @@ class AppRepositoryMetaTest {
 
     @Test
     fun `meta emits empty Meta model`() = runTest {
-        testableAppRepository.updateMeta(MetaNetworkModel())
+        testableAppRepository.updateMeta(MetaDatabaseModel())
         val expected = MetaAppModel()
         testableAppRepository.meta.test {
             val actual = awaitItem()
@@ -75,13 +73,13 @@ class AppRepositoryMetaTest {
 
     @Test
     fun `meta emits custom Meta model`() = runTest {
-        testableAppRepository.updateMeta(MetaNetworkModel(
+        testableAppRepository.updateMeta(MetaDatabaseModel(
             numDays = 4,
             version = "1.2.3",
             timeZoneName = "Europe/Berlin",
             title = "37C3",
             subtitle = "Unlocked",
-            httpHeader = HttpHeaderNetworkModel(eTag = "abc", lastModified = "9000"),
+            httpHeader = HttpHeaderDatabaseModel(eTag = "abc", lastModified = "9000"),
         ))
         val expected = MetaAppModel(
             numDays = 4,
@@ -121,7 +119,7 @@ private fun ContentValues.toMeta() = MetaDatabaseModel(
     title = get(TITLE) as String,
     subtitle = get(SUBTITLE) as String,
     httpHeader = HttpHeaderDatabaseModel(
-        eTag = get(ETAG) as String,
+        eTag = get(SCHEDULE_ETAG) as String,
         lastModified = get(SCHEDULE_LAST_MODIFIED) as String,
     ),
 )

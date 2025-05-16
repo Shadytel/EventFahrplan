@@ -22,6 +22,14 @@ interface SharedPreferencesRepository {
     fun getScheduleLastFetchedAt(): Long
     fun setScheduleLastFetchedAt(fetchedAt: Long)
 
+    fun getScheduleNextFetchAt(): Long
+    fun setScheduleNextFetchAt(fetchAt: Long)
+    fun resetScheduleNextFetchAt()
+
+    fun getScheduleNextFetchInterval(): Long
+    fun setScheduleNextFetchInterval(interval: Long)
+    fun resetScheduleNextFetchInterval()
+
     fun getChangesSeen(): Boolean
     fun setChangesSeen(changesSeen: Boolean)
 
@@ -29,10 +37,19 @@ interface SharedPreferencesRepository {
 
     fun getEngelsystemShiftsUrl(): String
 
+    fun getEngelsystemETag(): String
+    fun setEngelsystemETag(eTag: String)
+
+    fun getEngelsystemLastModified(): String
+    fun setEngelsystemLastModified(lastModified: String)
+
     fun getLastEngelsystemShiftsHash(): Int
     fun setLastEngelsystemShiftsHash(hash: Int)
 
     fun getSelectedSessionId(): String
     fun setSelectedSessionId(sessionId: String): Boolean
+
+    fun getSearchHistory(): List<String>
+    fun setSearchHistory(history: List<String>)
 
 }

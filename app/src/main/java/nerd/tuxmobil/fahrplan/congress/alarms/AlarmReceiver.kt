@@ -1,24 +1,20 @@
 package nerd.tuxmobil.fahrplan.congress.alarms
 
-import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_ONE_SHOT
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.VisibleForTesting
-
 import androidx.core.net.toUri
-
 import info.metadude.android.eventfahrplan.commons.logging.Logging
+import info.metadude.android.eventfahrplan.commons.temporal.Moment
 import nerd.tuxmobil.fahrplan.congress.alarms.AlarmReceiver.AlarmIntentFactory.Companion.ALARM_SESSION
-
 import nerd.tuxmobil.fahrplan.congress.autoupdate.UpdateService
+import nerd.tuxmobil.fahrplan.congress.commons.PendingIntentProvider
 import nerd.tuxmobil.fahrplan.congress.contract.BundleKeys
 import nerd.tuxmobil.fahrplan.congress.extensions.withExtras
 import nerd.tuxmobil.fahrplan.congress.notifications.NotificationHelper
 import nerd.tuxmobil.fahrplan.congress.repositories.AppRepository
 import nerd.tuxmobil.fahrplan.congress.schedule.MainActivity.Companion.createLaunchIntent
-import nerd.tuxmobil.fahrplan.congress.utils.PendingIntentCompat.FLAG_IMMUTABLE
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -28,7 +24,6 @@ class AlarmReceiver : BroadcastReceiver() {
         private const val LOG_TAG = "AlarmReceiver"
         private const val BUNDLE_KEY_NOTIFICATION_ID = "BUNDLE_KEY_NOTIFICATION_ID"
         private const val INVALID_NOTIFICATION_ID = -1
-        private const val DEFAULT_REQUEST_CODE = 0
 
         /**
          * Returns a unique [Intent] to delete the data associated with the
@@ -51,33 +46,28 @@ class AlarmReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             ALARM_DISMISSED -> onSessionAlarmNotificationDismissed(intent)
-            ALARM_UPDATE -> UpdateService.start(context)
+            ALARM_UPDATE -> {
+                updateScheduleNextFetch()
+                UpdateService.start(context)
+            }
             ALARM_SESSION -> {
                 val sessionId = intent.getStringExtra(BundleKeys.ALARM_SESSION_ID)!!
-                val day = intent.getIntExtra(BundleKeys.ALARM_DAY, 1)
+                val dayIndex = intent.getIntExtra(BundleKeys.ALARM_DAY_INDEX, 1)
                 val start = intent.getLongExtra(BundleKeys.ALARM_START_TIME, System.currentTimeMillis())
                 val title = intent.getStringExtra(BundleKeys.ALARM_TITLE)!!
                 logging.report(LOG_TAG, "sessionId = $sessionId, intent = $intent")
                 //Toast.makeText(context, "Alarm worked.", Toast.LENGTH_LONG).show();
 
                 val uniqueNotificationId = AppRepository.createSessionAlarmNotificationId(sessionId)
-                val launchIntent = createLaunchIntent(context, sessionId, day, uniqueNotificationId)
-                val contentIntent = PendingIntent.getActivity(
-                    context,
-                    DEFAULT_REQUEST_CODE,
-                    launchIntent,
-                    FLAG_ONE_SHOT or FLAG_IMMUTABLE
-                )
+                val launchIntent = createLaunchIntent(context, sessionId, dayIndex = dayIndex, notificationId = uniqueNotificationId)
+                val contentIntent = PendingIntentProvider.getPendingIntentActivity(context, launchIntent)
 
                 val notificationHelper = NotificationHelper(context)
                 val soundUri = AppRepository.readAlarmToneUri()
 
                 val deleteNotificationIntent = createDeleteNotificationIntent(context, uniqueNotificationId)
-                val deleteBroadcastIntent = PendingIntent.getBroadcast(
-                    context,
-                    DEFAULT_REQUEST_CODE,
-                    deleteNotificationIntent,
-                    FLAG_IMMUTABLE
+                val deleteBroadcastIntent = PendingIntentProvider.getPendingIntentBroadcast(
+                    context, deleteNotificationIntent
                 )
 
                 val builder = notificationHelper.getSessionAlarmNotificationBuilder(
@@ -99,18 +89,27 @@ class AlarmReceiver : BroadcastReceiver() {
         AppRepository.deleteSessionAlarmNotificationId(notificationId)
     }
 
+    private fun updateScheduleNextFetch() {
+        val nextFetch = AppRepository.readScheduleNextFetch()
+        if (nextFetch.isValid()) {
+            // Calculating rough next alarm time here because AlarmManager does not expose repetitive alarms.
+            val estimatedNextAlarmTime = Moment.now().plusDuration(nextFetch.interval)
+            AppRepository.updateScheduleNextFetch(nextFetch.copy(nextFetchAt = estimatedNextAlarmTime))
+        }
+    }
+
     internal class AlarmIntentFactory(
         val context: Context,
         val sessionId: String,
         val title: String,
-        val day: Int,
+        val dayIndex: Int,
         val startTime: Long,
     ) {
 
         fun getIntent(isAddAlarmIntent: Boolean) = Intent(context, AlarmReceiver::class.java)
             .withExtras(
                 BundleKeys.ALARM_SESSION_ID to sessionId,
-                BundleKeys.ALARM_DAY to day,
+                BundleKeys.ALARM_DAY_INDEX to dayIndex,
                 BundleKeys.ALARM_TITLE to title,
                 BundleKeys.ALARM_START_TIME to startTime
             ).apply {

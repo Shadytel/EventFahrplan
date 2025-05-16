@@ -4,7 +4,7 @@
     <string name="menu_item_title_about">Bilgi</string>
     <string name="menu_item_title_add_to_calendar">Takvime ekle</string>
     <string name="menu_item_title_alarms">Alarmlar</string>
-    <string name="menu_item_title_close_session_details">Etkinlik detaylarını kapat</string>
+    <string name="menu_item_title_close_session_details">Oturum ayrıntılarını kapat</string>
     <string name="menu_item_title_flag_as_favorite">Favorilere ekle</string>
     <string name="menu_item_title_unflag_as_favorite">Favorilerden kaldır</string>
     <string name="menu_item_title_delete_favorite">Sil</string>
@@ -15,7 +15,7 @@
     <string name="menu_item_title_feedback">Geri Bildirim</string>
     <string name="menu_item_title_navigate">Yönlendir</string>
     <string name="menu_item_title_refresh">Yenile</string>
-    <string name="menu_item_title_share_session">Etkinliği paylaş</string>
+    <string name="menu_item_title_share_session">Oturumu paylaş</string>
     <string name="menu_item_title_share_favorites">Favorileri paylaş</string>
     <string name="menu_item_title_share_session_text">metin olarak</string>
     <string name="menu_item_title_share_session_json">JSON olarak (Chaosflix için)</string>
@@ -48,32 +48,48 @@
     <!-- Schedule changes dialog -->
     <string name="schedule_changes_dialog_title">Takvim güncellemesi</string>
     <string name="schedule_changes_dialog_updated_to_text">Takvim \u0020 olarak güncellendi</string>
-    <string name="schedule_changes_dialog_changed_new_cancelled_text">. Şurada değişiklikler var, <xliff:g example="3 lectures" id="num_changes">%1$s</xliff:g>, <xliff:g example="2 are" id="num_new">%2$s</xliff:g> <xliff:g example="new" id="phrase_new">%3$s</xliff:g>, <xliff:g example="1 is" id="num_canceled">%4$s</xliff:g> <xliff:g example="cancelled" id="phrase_cancelled">%5$s</xliff:g>.</string>
-    <string name="schedule_changes_dialog_affected_text">Değişiklikler, tercih ettiğiniz <xliff:g example="2" id="num_marked">%1$d</xliff:g> dersleri etkiler.</string>
+    <string name="schedule_changes_dialog_changed_new_cancelled_text"><xliff:g example="3 sessions" id="num_changes">%1$s</xliff:g>,<xliff:g example="2 are" id="num_new">%2$s</xliff:g><xliff:g example="new" id="phrase_new">%3$s</xliff:g>,<xliff:g example="1 is" id="num_canceled">%4$s</xliff:g><xliff:g example="cancelled" id="phrase_cancelled">%5$s</xliff:g> değişiklikler var.</string>
+    <string name="schedule_changes_dialog_affected_text">Değişiklikler <xliff:g example="2" id="num_marked">%1$d</xliff:g> favori oturumunu etkiliyor.</string>
+    <plurals name="schedule_changes_dialog_phrase_new">
+        <item quantity="one">yeni</item>
+        <item quantity="other">yeni</item>
+    </plurals>
+    <plurals name="schedule_changes_dialog_phrase_cancelled">
+        <item quantity="one">iptal edildi</item>
+        <item quantity="other">iptal edildi</item>
+    </plurals>
+    <plurals name="schedule_changes_dialog_number_of_sessions">
+        <item quantity="one"><xliff:g example="1" id="count">%d</xliff:g> oturum</item>
+        <item quantity="other"><xliff:g example="9" id="count">%d</xliff:g> oturum</item>
+    </plurals>
     <plurals name="schedule_changes_dialog_being">
         <item quantity="one"><xliff:g example="1" id="count">%d</xliff:g> </item>
         <item quantity="other"><xliff:g example="9" id="count">%d</xliff:g></item>
     </plurals>
     <string name="schedule_changes_dialog_browse">Görüntüle</string>
     <string name="schedule_changes_dialog_later">Sonra</string>
+    <string name="navigate_back_content_description">Geri</string>
     <string name="progress_loading_data">Planı indir &#8230;</string>
     <string name="progress_processing_data">Plan işleniyor &#8230;</string>
     <string name="load_data">Yükle</string>
     <string name="choose_day">Gün seç</string>
     <string name="day">Gün</string>
     <string name="fahrplan">Plan</string>
+    <string name="schedule_no_schedule_data_title">Henüz gösterilecek bir şey yok</string>
+    <string name="schedule_no_schedule_data_subtitle">Lütfen daha sonra tekrar deneyin</string>
     <string name="appVersion">Versiyon <xliff:g example="1.40.2" id="appVersion">%s</xliff:g></string>
     <string name="schedule_updated_to"><xliff:g example="Mildenberg 2018-01-16 16:50" id="version">%s</xliff:g> versiyona güncellendi
     </string>
     <string name="schedule_updated">Program güncellendi.
     </string>
     <string name="settings">Ayarlar</string>
+    <string name="session_details_screen_name">Detaylar</string>
     <string name="session_details_section_title_track">Konu alanı</string>
     <string name="session_details_section_title_session_online">Online etkinlik</string>
     <string name="session_details_section_title_links">Bağlantılar</string>
     <string name="choose_alarm_time">Alarm zamanını seçin</string>
     <string name="reminders">Alarmlar</string>
-    <string name="usage">Not:\n\nBir konuşmaya uzun süre basılı tutarak alarm oluştur.</string>
+    <string name="usage">Not:\n\nBir oturuma uzun süre basılı tutarak alarm oluştur.</string>
     <string name="about_libraries_statement">Bu uygulamanın kullandığı kütüphaneler: <xliff:g example="Kotlin, Espresso" id="libs">%s</xliff:g>
     </string>
     <string name="about_data_privacy_statement_german">Bilgi gizliliği (Almanca)</string>
@@ -88,14 +104,16 @@
     <string name="engelsystem_shifts_parsing_error_generic"><xliff:g example="Engelsystem" id="engelsystemAlias">%s</xliff:g> vardiyalarını çözümlerken bir hatayla karşılaşıldı</string>
     <string name="engelsystem_shifts_parsing_error_forbidden"><xliff:g example="Engelsystem" id="engelsystemAlias">%s</xliff:g> vardiyaları için yanlış API anahtarı</string>
     <string name="engelsystem_shifts_parsing_error_not_found"><xliff:g example="Engelsystem" id="engelsystemAlias">%s</xliff:g> vardiyası için yanlış URL</string>
-    <string name="add_to_calendar_failed">Etkinlik takvime eklenemedi.</string>
-    <string name="no_changes">Planda değişim yok</string>
-    <string name="no_favorites">Favoru konuşma yok</string>
+    <string name="add_to_calendar_failed">Oturum takvime eklenemedi.</string>
+    <string name="schedule_changes_no_changes_title">Herhangi bir değişiklik yok</string>
+    <string name="schedule_changes_no_changes_subtitle">Uygulama düzenli olarak güncellemeleri kontrol eder</string>
+    <string name="favorites_no_favorites_title">Favoriler yok</string>
+    <string name="favorites_no_favorites_subtitle">Favori eklemek için menü çubuğundaki yıldıza tıklayın</string>
     <string name="schedule_changes">Plan değişiklikleri</string>
     <string name="general_settings">Genel</string>
     <string name="starred_sessions">Favoriler</string>
     <string name="invalid_url">Geçersiz URL</string>
-    <string name="choose_to_delete">Konuşma seç</string>
+    <string name="choose_to_delete">Oturumları seç</string>
     <string name="day_separator">Gün <xliff:g example="2" id="day_of_congress">%1$d</xliff:g> - <xliff:g example="29.12.2014" id="date_of_congress_day">%2$s</xliff:g></string>
     <string name="dlg_delete_all_favorites">Tüm favorileri silmek mi istiyorsun?</string>
     <string name="dlg_delete_all_favorites_delete_all">Tümünü sil</string>
@@ -131,11 +149,15 @@ Hatanın nasıl ve ne zaman olduğunu açıklayabilirsen bu bize hayli yardım e
     <string name="trace_droid_button_title_no">Hayır    </string>
     <string name="trace_droid_button_title_later">Belki daha sonra    </string>
     <!-- Notifications -->
-    <string name="notifications_session_alarm_channel_description">Çeşitli etkinlikler için kullanıcı tarafından oluşturulan alarmlar.    </string>
-    <string name="notifications_session_alarm_channel_name">Etkinlik alarmları</string>
-    <string name="notifications_session_alarm_content_text">Etkinlik alarmı</string>
+    <string name="notifications_session_alarm_channel_description">Çeşitli oturumlar için kullanıcı tarafından oluşturulan alarmlar.    </string>
+    <string name="notifications_session_alarm_channel_name">Oturumlar için alarmlar</string>
+    <string name="notifications_session_alarm_content_text">Oturum için alarm</string>
     <string name="notifications_schedule_update_channel_description">Uygulama ayarlarında yapılandırılabilen programın otomatik güncellemeleri.    </string>
     <string name="notifications_schedule_update_channel_name">Program güncellemeleri</string>
+    <plurals name="notifications_schedule_changes">
+        <item quantity="one"><xliff:g example="1" id="count">%d</xliff:g> oturum düzenlendi.</item>
+        <item quantity="other"><xliff:g example="3" id="count">%d</xliff:g> oturum düzenlendi.</item>
+    </plurals>
     <!-- Schedule refresh interval picker -->
     <!-- Alarm time picker -->
     <string name="alarm_time_title_at_start_time">başlangıç zamanında</string>
@@ -168,12 +190,17 @@ Hatanın nasıl ve ne zaman olduğunu açıklayabilirsen bu bize hayli yardım e
     <string name="session_list_item_no_video_content_description">Video kaydı yok</string>
     <string name="session_list_item_video_content_description">Video kaydı var</string>
     <string name="session_list_item_without_video_content_description">Video kaydı yok</string>
+    <string name="session_list_item_zero_speakers_content_description">Konuşmacı yok</string>
+    <plurals name="session_list_item_speakers_content_description">
+        <item quantity="one">Konuşmacı: <xliff:g example="Jane Doe" id="name">%s</xliff:g></item>
+        <item quantity="other">Konuşmacılar: <xliff:g example="Jane Doe, John Doe" id="names">%s</xliff:g></item>
+    </plurals>
     <!-- Session item -->
     <string name="session_item_has_alarm_content_description">alarm kuruldu</string>
     <!-- Alarms -->
-    <string name="alarms_empty">Görüntülenecek alarm bulunamadı. Lütfen plandaki her bir
-konuşma için ayrı bir alarm kurabilecğeini unutma.
-Alarm kurmak için konuşma ekranındaki alarm butonuna dokun.    </string>
+    <string name="alarms_no_alarms_title">        Alarm kurulmamış
+    </string>
+    <string name="alarms_no_alarms_subtitle">Alarm kurmak için menü çubuğundaki zil simgesine tıklayın</string>
     <string name="alarms_item_on_click_label">Detayları görüntüle    </string>
     <string name="alarms_item_delete_icon_on_click_label">Alarmı sil    </string>
     <string name="alarms_item_alarm_time_zero_minutes_content_description">Alarm: başlangıçta    </string>
@@ -184,4 +211,28 @@ Alarm kurmak için konuşma ekranındaki alarm butonuna dokun.    </string>
     <string name="validation_error_url_without_query"><xliff:g example="Engelsystem" id="urlType">%s</xliff:g> URL sorgusu bulunamadı.    </string>
     <string name="validation_error_url_with_incomplete_query"><xliff:g example="Engelsystem" id="urlType">%s</xliff:g> URL sorgusu eksik.    </string>
     <string name="validation_error_url_without_api_key"><xliff:g example="Engelsystem" id="urlType">%s</xliff:g> API anahtarı olmayan URL.    </string>
+    <!-- Schedule statistic -->
+    <string name="schedule_statistic_no_statistic_data_title">Program istatistiği henüz hazır değil</string>
+    <string name="schedule_statistic_title">Program istatistiği</string>
+    <string name="schedule_statistic_description">\'sessions\' veritabanı tablosundaki boş ve dolu veya null alanların dağılımını gösterir.</string>
+    <string name="schedule_statistic_toggle_sorting">Sırala</string>
+    <string name="schedule_statistic_column_name">Sütun adı</string>
+    <string name="schedule_statistic_null_empty">null/boş</string>
+    <string name="schedule_statistic_null_empty_content_description">null ya da boş</string>
+    <string name="schedule_statistic_non_empty">doluluk</string>
+    <!-- Search -->
+    <string name="search_title">Arama</string>
+    <string name="search_no_search_result_title">Oturum bulunamadı</string>
+    <string name="search_no_search_result_subtitle">Aramanızı yeniden gözden geçirin</string>
+    <string name="search_query_hint">Oturum ara</string>
+    <string name="search_clear_search_query_content_description">Aramayı temizle</string>
+    <string name="search_history_title">Son aramalar</string>
+    <string name="search_history_clear">Temizle</string>
+    <!-- Room state -->
+    <string name="room_state_text">Oda durumu: <xliff:g example="Too full" id="state">%s</xliff:g></string>
+    <string name="room_state_unknown">bilinmiyor</string>
+    <string name="room_state_empty">boş</string>
+    <string name="room_state_full">dolu</string>
+    <string name="room_state_too_full">çok dolu</string>
+    <string name="room_state_not_retrievable">alınamıyor</string>
 </resources>

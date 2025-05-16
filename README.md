@@ -3,19 +3,18 @@
 # EventFahrplan
 
 EventFahrplan is a viewer for event schedules such as
-[Chaos Computer Club e.V. events][ccc-events] like [Chaos Communication Camp][camp-website],
-[Chaos Communication Congress][congress-website] or [JahresEndVeranstaltungen][jev-website].
+[Chaos Computer Club e.V. events][ccc-events] like [Chaos Communication Camp][camp-website]
+or [Chaos Communication Congress][congress-website].
 
 - Chaos Communication Camp Schedule app: [F-Droid][camp-app-fdroid], [Google Play][camp-app-google-play]
 - Chaos Communication Congress Schedule app: [F-Droid][congress-app-fdroid], [Google Play][congress-app-google-play]
-- JahresEndVeranstaltungen Schedule app: [F-Droid][jev-app-fdroid], [Google Play][jev-app-google-play]
 
 The app is available for Android devices.
 
 Bug reports, feature requests can be submitted as an [issue][issues-github].
 Please read the instructions in the [contribution guide](CONTRIBUTING.md) in order to contribute to this project.
 
-![Picture of the Camp2023 Schedule on tablet and phone](gfx/EventFahrplan-Camp2023-tablet-phone.png)
+![Picture of the 38C3 Schedule on tablet and phone](gfx/EventFahrplan-38C3-tablet-phone.png)
 
 ## Table of contents
 
@@ -32,18 +31,19 @@ Please read the instructions in the [contribution guide](CONTRIBUTING.md) in ord
 
 * View program by day and rooms (side by side)
 * Custom grid layout for smartphones (**try landscape mode**) and tablets
-* Read detailed descriptions (speaker names, start time, room name, links, ...) of events
-* Add events to favorites list
+* Read detailed descriptions (speaker names, start time, room name, links, ...) of sessions
+* Search through all sessions
+* Add sessions to favorites list
 * Export favorites list
-* Setup alarms for individual events
-* Add events to your personal calendar
-* Share a link to an event with others
+* Setup alarms for individual sessions
+* Add sessions to your personal calendar
+* Share a link to a session with others
 * Keep track of program changes
 * Automatic program updates (configurable in settings)
 
 
 ### Supported languages
-*Event descriptions excluded*
+*Session descriptions excluded*
 - Danish 🇩🇰
 - Dutch 🇳🇱
 - English 🇺🇸
@@ -54,7 +54,8 @@ Please read the instructions in the [contribution guide](CONTRIBUTING.md) in ord
 - Japanese 🇯🇵
 - Lithuanian 🇱🇹
 - Polish 🇵🇱
-- Portuguese 🇵🇹
+- Portuguese, Brazil 🇧🇷
+- Portuguese, Portugal 🇵🇹
 - Russian 🇷🇺
 - Spanish 🇪🇸
 - Swedish 🇸🇪
@@ -66,6 +67,7 @@ Please read the instructions in the [contribution guide](CONTRIBUTING.md) in ord
 * [c3nav][c3nav-github] - An indoor navigation project
 * [Engelsystem][engelsystem-website] - Online tool for coordinating helpers and shifts at large events
 * [Chaosflix][chaosflix-github] - Android app for media.ccc.de, share Fahrplan favorites with Chaosflix to import them as bookmarks
+* [FOSDEM room status][fosdem-room-status-website] - Current status (full/empty) of a room at FOSDEM
 
 
 ## Android versions
@@ -116,14 +118,21 @@ other conferences.
 
 ## Funding
 
+In 2025, this project was funded through the [NGI0 Core Fund](https://nlnet.nl/core), a fund
+established by [NLnet](https://nlnet.nl) with financial support from the European Commission's
+[Next Generation Internet](https://ngi.eu) program, under the aegis of [DG Communications
+Networks, Content and Technology](https://commission.europa.eu/about-european-commission/departments-and-executive-agencies/communications-networks-content-and-technology_en) under grant agreement
+No. [101092990](https://cordis.europa.eu/project/id/101092990).
+
 In 2023 & 2024, this project was funded by the [NGI0 Entrust Fund](https://nlnet.nl/entrust), a fund
 established by [NLnet](https://nlnet.nl) with financial support from the European Commission's
-[Next Generation Internet](https://ngi.eu) program, under the aegis of DG Communications Networks,
-Content and Technology under grant agreement No. 101069594.
+[Next Generation Internet](https://ngi.eu) program, under the aegis of [DG Communications Networks,
+Content and Technology](https://commission.europa.eu/about-european-commission/departments-and-executive-agencies/communications-networks-content-and-technology_en) under grant agreement 
+No. [101069594](https://cordis.europa.eu/project/id/101069594).
 
 ![Logo NLnet: abstract logo of four people seen from above](gfx/nlnet-banner-160x60.png)
 
-![Logo NGI Zero: letterlogo shaped like a tag](gfx/ngi0entrust-banner-191x60.png)
+![Logo NGI Zero Core: letterlogo shaped like a tag](gfx/ngi0core-banner-191x60.png) ![Logo NGI Zero Entrust: letterlogo shaped like a tag](gfx/ngi0entrust-banner-191x60.png)
 
 ## Licenses
 
@@ -131,19 +140,20 @@ Portions Copyright 2008-2011 The K-9 Dog Walkers and 2006-2011 the Android Open 
 
 
 ```
-Copyright 2013-2024 johnjohndoe
+Copyright 2013-2025 johnjohndoe
 Copyright 2011-2015 Daniel Dorau
 Contributions from 0x5ubt13, Adriano Pereira Junior, Akarsh Seggemu,
-Александр Рознятовский, aligoush, Andrea Marziali, Andy Scherzinger,
+Александр Рознятовский, aligoush, Andrea Marziali, Andrulko, Andy Scherzinger,
 Andreas Schildbach, Animesh Verma, bashtian, bjoernb, Björn Olsson Jarl,
 ButterflyOfFire, cacarrara, Caio Volpato, Chase, cketti, codingcatgirl,
 Dominik Stadler, entropynil, erebion, ideadapt, isi_ko404, IsoLinearCHiP,
 Jasper van der Graaf, Joergi, Julius Vitkauskas, koelnkalkverbot, Larissa Yasin,
 lepawa, ligi, lucadelu, Luis Azcuaga, María Arias de Reyna, Mateus Baptista,
 Matthias Geisler, Matthias Hunstock, Matthias Mair, MichaelRocks, Miguel Beltran,
-mtpa, Nghiem Xuan Hien, NiciDieNase, Noemis, Omicron, Poschi, Qwertele,
-Róbert Papp, rotrot, Sjors van Mierlo, Stefan Medack, SubOptimal, Su Jade,
-taseret, Teeranai.P, Torsten Grote, Victor Herasme, Vladimir Alabov, Yanicka
+mtpa, Muha Aliss, Nghiem Xuan Hien, NiciDieNase, Noemis, Oguz Yuksel, Omicron,
+ozgurbaykal, Poschi, Qwertele, Róbert Papp, Robin Janssens, rotrot, Sjors van Mierlo,
+Smarzaro, Stefan Medack, SubOptimal, Su Jade, taseret, Teeranai.P, Torsten Grote,
+Victor Herasme, Vladimir Alabov, Yanicka, zadintuvas
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -175,12 +185,10 @@ limitations under the License.
 [eventfahrplan-github]: https://github.com/EventFahrplan/EventFahrplan
 [frab-schedule-xml-spec]: https://github.com/voc/schedule/tree/master/validator/xsd
 [frab-website]: https://frab.github.io/frab/
+[fosdem-room-status-website]: https://api.fosdem.org
 [issues-github]: https://github.com/EventFahrplan/EventFahrplan/issues
 [johnjohndoe-github]: https://github.com/johnjohndoe
 [pentabarf-github]: https://github.com/nevs/pentabarf
 [pretalx-website]: https://pretalx.com
-[jev-app-fdroid]: https://f-droid.org/packages/info.metadude.android.rc3.schedule
-[jev-app-google-play]: https://play.google.com/store/apps/details?id=info.metadude.android.rc3.schedule
-[jev-website]: https://events.ccc.de/2022/11/28/dezentral-2022/
 [tuxmobil-github]: https://github.com/tuxmobil
 [wafer-website]: https://wafer.readthedocs.io

@@ -40,6 +40,7 @@ class AboutParameterFactoryTest {
             dataPrivacyStatement = Html.of(text = "Data privacy statement (German)", url = "https://github.com/EventFahrplan/EventFahrplan/blob/master/DATA-PRIVACY-DE.md"),
             copyrightNotes = "Copyright",
             buildTime = "Build time: 2015-12-27T13:42Z",
+            modifiedAt = "Modification time: 2015-12-26T23:59Z",
             buildVersion = "Version code: 100",
             buildHash = "Version hash: e1f2g3h-dirty",
         )
@@ -73,6 +74,7 @@ class AboutParameterFactoryTest {
             dataPrivacyStatement = Html.of(text = "Data privacy statement (German)", url = "https://github.com/EventFahrplan/EventFahrplan/blob/master/DATA-PRIVACY-DE.md"),
             copyrightNotes = "Copyright",
             buildTime = "Build time: 2015-12-27T13:42Z",
+            modifiedAt = "Modification time: 2015-12-26T23:59Z",
             buildVersion = "Version code: 100",
             buildHash = "Version hash: e1f2g3h-dirty",
         )
@@ -106,6 +108,7 @@ class AboutParameterFactoryTest {
             dataPrivacyStatement = Html.of(text = "Data privacy statement (German)", url = "https://github.com/EventFahrplan/EventFahrplan/blob/master/DATA-PRIVACY-DE.md"),
             copyrightNotes = "Copyright",
             buildTime = "Build time: 2015-12-27T13:42Z",
+            modifiedAt = "Modification time: 2015-12-26T23:59Z",
             buildVersion = "Version code: 200",
             buildHash = "Version hash: e1f2g3h-dirty",
         )
@@ -133,11 +136,17 @@ private object CompleteResourceResolver : ResourceResolving {
         R.string.about_data_privacy_statement_german -> "Data privacy statement (German)"
         R.string.copyright_notes -> "Copyright"
         R.string.build_time -> "2015-12-27T13:42Z"
+        R.string.modified_at -> "Modification time: ${formatArgs.first()}"
+        R.string.modification_time -> "2015-12-26T23:59Z"
         R.string.build_info_time -> "Build time: ${formatArgs.first()}"
         R.string.build_info_version_code -> "Version code: ${formatArgs.first()}"
         R.string.git_sha -> "e1f2g3h-dirty"
         R.string.build_info_hash -> "Version hash: ${formatArgs.first()}"
         else -> fail("Unknown string id : $id")
+    }
+
+    override fun getQuantityString(id: Int, quantity: Int, vararg formatArgs: Any): String {
+        throw NotImplementedError("Not needed for this test.")
     }
 }
 
@@ -160,11 +169,17 @@ private object SomeEmptyResourceResolver : ResourceResolving {
         R.string.about_data_privacy_statement_german -> "Data privacy statement (German)"
         R.string.copyright_notes -> "Copyright"
         R.string.build_time -> "2015-12-27T13:42Z"
+        R.string.modified_at -> "Modification time: ${formatArgs.first()}"
+        R.string.modification_time -> "2015-12-26T23:59Z"
         R.string.build_info_time -> "Build time: ${formatArgs.first()}"
         R.string.build_info_version_code -> "Version code: ${formatArgs.first()}"
         R.string.git_sha -> "e1f2g3h-dirty"
         R.string.build_info_hash -> "Version hash: ${formatArgs.first()}"
         else -> fail("Unknown string id : $id")
+    }
+
+    override fun getQuantityString(id: Int, quantity: Int, vararg formatArgs: Any): String {
+        throw NotImplementedError("Not needed for this test.")
     }
 }
 
@@ -180,6 +195,8 @@ private object CompleteBuildConfigProvider : BuildConfigProvision {
     override val fDroidUrl: String = "https://f-droid.org/packages/info.metadude.android.congress.schedule"
     override val googlePlayUrl: String = "https://play.google.com/store/apps/details?id=info.metadude.android.congress.schedule"
     override val dataPrivacyStatementDeUrl: String = "https://github.com/EventFahrplan/EventFahrplan/blob/master/DATA-PRIVACY-DE.md"
+    override val enableFosdemRoomStates: Boolean = false
+    override val serverBackendType: String = "pretalx"
 }
 
 private object IncompleteBuildConfigProvider : BuildConfigProvision {
@@ -194,4 +211,6 @@ private object IncompleteBuildConfigProvider : BuildConfigProvision {
     override val fDroidUrl: String = ""
     override val googlePlayUrl: String = "https://play.google.com/store/apps/details?id=info.metadude.android.congress.schedule"
     override val dataPrivacyStatementDeUrl: String = "https://github.com/EventFahrplan/EventFahrplan/blob/master/DATA-PRIVACY-DE.md"
+    override val enableFosdemRoomStates: Boolean = false
+    override val serverBackendType: String = "pretalx"
 }

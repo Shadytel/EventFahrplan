@@ -91,7 +91,7 @@ class AppRepositoryLoadAndParseScheduleTest {
                 sessionsDatabaseRepository = sessionsDatabaseRepository,
                 metaDatabaseRepository = metaDatabaseRepository,
                 scheduleNetworkRepository = scheduleNetworkRepository,
-                engelsystemNetworkRepository = mock(),
+                engelsystemRepository = mock(),
                 sharedPreferencesRepository = sharedPreferencesRepository,
                 sessionsTransformer = sessionsTransformer
             )
@@ -236,7 +236,7 @@ class AppRepositoryLoadAndParseScheduleTest {
 
     private suspend fun assertStarredSessionsProperty() {
         testableAppRepository.starredSessions.test {
-            val session = AppSession(sessionId = "55", highlight = true)
+            val session = AppSession(sessionId = "55", isHighlight = true)
             assertThat(awaitItem()).isEqualTo(listOf(session))
         }
     }
@@ -245,7 +245,7 @@ class AppRepositoryLoadAndParseScheduleTest {
         testableAppRepository.changedSessions.test {
             val session = AppSession(
                 sessionId = "55",
-                highlight = true,
+                isHighlight = true,
                 changedLanguage = true,
             )
             assertThat(awaitItem()).isEqualTo(listOf(session))
@@ -257,7 +257,7 @@ class AppRepositoryLoadAndParseScheduleTest {
             "23"
         )
         whenever(highlightsDatabaseRepository.queryBySessionId(any())) doReturn DatabaseHighlight(
-            sessionId = 23,
+            sessionId = "23",
             isHighlight = false
         )
         whenever(alarmsDatabaseRepository.query(anyString())) doReturn emptyList()

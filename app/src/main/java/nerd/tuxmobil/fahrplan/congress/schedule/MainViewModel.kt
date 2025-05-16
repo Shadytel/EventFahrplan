@@ -6,9 +6,11 @@ import info.metadude.android.eventfahrplan.commons.logging.Logging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import nerd.tuxmobil.fahrplan.congress.changes.ChangeStatistic
+import nerd.tuxmobil.fahrplan.congress.dataconverters.toSessionsAppModel
 import nerd.tuxmobil.fahrplan.congress.net.ParseResult
 import nerd.tuxmobil.fahrplan.congress.notifications.NotificationHelper
 import nerd.tuxmobil.fahrplan.congress.repositories.AppRepository
@@ -61,7 +63,7 @@ internal class MainViewModel(
 
     private fun observeLoadScheduleState() {
         launch {
-            repository.loadScheduleState.collect { state ->
+            repository.loadScheduleState.collectLatest { state ->
                 val uiState = state.toUiState()
                 mutableLoadScheduleUiState.sendOneTimeEvent(uiState)
                 state.handleFailureStates()
@@ -81,11 +83,13 @@ internal class MainViewModel(
                 LoadScheduleUiState.Failure.SilentFetchFailure
             }
         }
+
         InitialParsing -> LoadScheduleUiState.Initializing.InitialParsing
         Parsing -> LoadScheduleUiState.Active.Parsing
         ParseSuccess -> LoadScheduleUiState.Success.ParseSuccess.also {
             onParsingDone()
         }
+
         is ParseFailure -> LoadScheduleUiState.Failure.ParseFailure
     }
 
@@ -97,9 +101,11 @@ internal class MainViewModel(
                 // Don't bother the user with schedule up-to-date messages.
             }
         }
+
         is ParseFailure -> {
             mutableParseFailure.sendOneTimeEvent(parseResult)
         }
+
         else -> {
             mutableFetchFailure.sendOneTimeEvent(null)
             mutableParseFailure.sendOneTimeEvent(null)
@@ -109,7 +115,7 @@ internal class MainViewModel(
     private fun onParsingDone() {
         if (!repository.readScheduleChangesSeen()) {
             val scheduleVersion = repository.readMeta().version
-            val sessions = repository.loadChangedSessions()
+            val sessions = repository.loadChangedSessions().toSessionsAppModel()
             val statistic = ChangeStatistic.of(sessions, logging)
             val parameter = ScheduleChangesParameter(scheduleVersion, statistic)
             mutableScheduleChangesParameter.sendOneTimeEvent(parameter)

@@ -7,7 +7,7 @@ jdk: openjdk17
 env:
   global:
   # Android command line tools, check for updates here https://developer.android.com/studio/#command-tools
-  - COMMAND_LINE_TOOLS_VERSION=11076708
+  - COMMAND_LINE_TOOLS_VERSION=13114758
   - ANDROID_HOME=$HOME/android-sdk
   - TARGET_SDK_VERSION=`grep -H targetSdk buildSrc/src/main/kotlin/nerd/tuxmobil/fahrplan/congress/Dependencies.kt | grep -Po "\d+"`
   - BUILD_TOOLS_VERSION=`grep -H buildToolsVersion buildSrc/src/main/kotlin/nerd/tuxmobil/fahrplan/congress/Dependencies.kt | grep -Po "\d+.\d+.\d+"`
@@ -92,4 +92,4 @@ script:
   # Prevent build failures due to directories being altered illegally by the cache..
   - sudo rm -rf /home/travis/.gradle/caches/transforms-*
 
-  - ./gradlew testDebugUnitTest :engelsystem:test testCcc37C3DebugUnitTest assembleCcc37C3Debug
+  - ./gradlew testDebugUnitTest testCcc38c3DebugUnitTest assembleCcc38c3Debug

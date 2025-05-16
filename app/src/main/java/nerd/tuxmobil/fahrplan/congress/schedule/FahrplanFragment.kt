@@ -10,16 +10,16 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
 import android.text.TextUtils.TruncateAt
-import android.view.ContextMenu
-import android.view.ContextMenu.ContextMenuInfo
 import android.view.Gravity.CENTER
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
 import android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
 import android.view.ViewGroup
+import android.view.ViewTreeObserver.OnScrollChangedListener
 import android.widget.ArrayAdapter
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
@@ -33,16 +33,19 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.appcompat.app.ActionBar.NAVIGATION_MODE_LIST
 import androidx.appcompat.app.ActionBar.OnNavigationListener
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.MenuProvider
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.core.widget.NestedScrollView
 import androidx.core.widget.NestedScrollView.OnScrollChangeListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
+import androidx.lifecycle.Lifecycle.State.RESUMED
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import info.metadude.android.eventfahrplan.commons.flow.observe
 import info.metadude.android.eventfahrplan.commons.logging.Logging
@@ -52,6 +55,7 @@ import nerd.tuxmobil.fahrplan.congress.R
 import nerd.tuxmobil.fahrplan.congress.alarms.AlarmServices
 import nerd.tuxmobil.fahrplan.congress.alarms.AlarmTimePickerFragment
 import nerd.tuxmobil.fahrplan.congress.calendar.CalendarSharing
+import nerd.tuxmobil.fahrplan.congress.commons.ResourceResolver
 import nerd.tuxmobil.fahrplan.congress.contract.BundleKeys
 import nerd.tuxmobil.fahrplan.congress.extensions.getLayoutInflater
 import nerd.tuxmobil.fahrplan.congress.extensions.isLandscape
@@ -63,15 +67,23 @@ import nerd.tuxmobil.fahrplan.congress.net.ConnectivityObserver
 import nerd.tuxmobil.fahrplan.congress.net.ErrorMessage
 import nerd.tuxmobil.fahrplan.congress.notifications.NotificationHelper
 import nerd.tuxmobil.fahrplan.congress.repositories.AppRepository
+import nerd.tuxmobil.fahrplan.congress.schedule.SessionInteractionType.ADD_TO_CALENDAR
+import nerd.tuxmobil.fahrplan.congress.schedule.SessionInteractionType.SHARE
+import nerd.tuxmobil.fahrplan.congress.schedule.SessionInteractionType.SHARE_JSON
+import nerd.tuxmobil.fahrplan.congress.schedule.SessionInteractionType.SHARE_TEXT
+import nerd.tuxmobil.fahrplan.congress.schedule.SessionInteractionType.TOGGLE_ALARM
+import nerd.tuxmobil.fahrplan.congress.schedule.SessionInteractionType.TOGGLE_FAVORITE
 import nerd.tuxmobil.fahrplan.congress.schedule.observables.TimeTextViewParameter
 import nerd.tuxmobil.fahrplan.congress.sharing.SessionSharer
 import nerd.tuxmobil.fahrplan.congress.utils.ContentDescriptionFormatter
+import nerd.tuxmobil.fahrplan.congress.utils.ContentDescriptionFormatting
 import nerd.tuxmobil.fahrplan.congress.utils.FahrplanMisc
 import nerd.tuxmobil.fahrplan.congress.utils.Font
 import nerd.tuxmobil.fahrplan.congress.utils.SessionPropertiesFormatter
+import nerd.tuxmobil.fahrplan.congress.utils.SessionPropertiesFormatting
 import nerd.tuxmobil.fahrplan.congress.utils.TypefaceFactory
 
-class FahrplanFragment : Fragment(), SessionViewEventsHandler {
+class FahrplanFragment : Fragment(), MenuProvider {
 
     /**
      * Interface definition for a callback to be invoked when a session view is clicked.
@@ -89,30 +101,23 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         const val FRAGMENT_TAG = "schedule"
         private const val FAHRPLAN_FRAGMENT_REQUEST_KEY = "FAHRPLAN_FRAGMENT_REQUEST_KEY"
 
-        private const val CONTEXT_MENU_ITEM_ID_FAVORITES = 0
-        private const val CONTEXT_MENU_ITEM_ID_SET_ALARM = 1
-        private const val CONTEXT_MENU_ITEM_ID_DELETE_ALARM = 2
-        private const val CONTEXT_MENU_ITEM_ID_ADD_TO_CALENDAR = 3
-        private const val CONTEXT_MENU_ITEM_ID_SHARE = 4
-        private const val CONTEXT_MENU_ITEM_ID_SHARE_TEXT = 5
-        private const val CONTEXT_MENU_ITEM_ID_SHARE_JSON = 6
-
         const val FIFTEEN_MINUTES = 15
         const val BOX_HEIGHT_MULTIPLIER = 3
 
+        // Constants from LayoutCalculator
+        private const val LAYOUT_CALCULATOR_DIVISOR = 5
     }
 
     private lateinit var postNotificationsPermissionRequestLauncher: ActivityResultLauncher<String>
     private lateinit var scheduleExactAlarmsPermissionRequestLauncher: ActivityResultLauncher<Intent>
     private lateinit var inflater: LayoutInflater
-    private lateinit var sessionViewDrawer: SessionViewDrawer
     private lateinit var errorMessageFactory: ErrorMessage.Factory
     private lateinit var connectivityObserver: ConnectivityObserver
     private lateinit var roomTitleTypeFace: Typeface
-    private lateinit var contextMenuView: View
     private lateinit var viewModel: FahrplanViewModel
 
     private val logging = Logging.get()
+    private var onHorizontalScrollChangeListener: OnScrollChangedListener? = null
     private var onSessionClickListener: OnSessionClickListener? = null
     private var lastSelectedSession: Session? = null
     private var displayDensityScale = 0f
@@ -175,15 +180,9 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
                 }
             }
 
-        setHasOptionsMenu(true)
+        requireActivity().addMenuProvider(this, this, RESUMED)
         val context = requireContext()
         roomTitleTypeFace = TypefaceFactory.getNewInstance(context).getTypeface(Font.Roboto.Light)
-        sessionViewDrawer = SessionViewDrawer(
-            context = context,
-            sessionPropertiesFormatter = SessionPropertiesFormatter(),
-            contentDescriptionFormatter = ContentDescriptionFormatter(context),
-            getSessionPadding = { sessionPadding },
-        )
         errorMessageFactory = ErrorMessage.Factory(context)
         connectivityObserver = ConnectivityObserver(context, onConnectionAvailable = {
             logging.d(LOG_TAG, "Network is available.")
@@ -211,23 +210,52 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         snapScroller.setChildScroller(roomScroller)
         roomScroller.setOnTouchListener { _, _ -> true }
 
+        onHorizontalScrollChangeListener = OnScrollChangedListener {
+            if (getView() != null) {
+                updateHorizontalScrollingProgressLine(snapScroller.scrollX)
+            }
+        }
+        snapScroller.viewTreeObserver.addOnScrollChangedListener(onHorizontalScrollChangeListener)
+
         inflater = view.context.getLayoutInflater()
+    }
+
+    override fun onDestroyView() {
+        val snapScroller = requireView().requireViewByIdCompat<HorizontalSnapScrollView>(R.id.horizScroller)
+        snapScroller.viewTreeObserver.removeOnScrollChangedListener(onHorizontalScrollChangeListener)
+        onHorizontalScrollChangeListener = null
+        super.onDestroyView()
     }
 
     @SuppressLint("InlinedApi")
     private fun observeViewModel() {
         viewModel.fahrplanParameter
-            .observe(this) { (scheduleData, useDeviceTimeZone, numDays, dayIndex, menuEntries) ->
-                buildNavigationMenu(menuEntries, numDays)
+            .observe(this) { (scheduleData, useDeviceTimeZone) ->
+                hideNoScheduleView()
                 viewModel.fillTimes(Moment.now(), getNormalizedBoxHeight())
-                viewDay(scheduleData, useDeviceTimeZone, numDays, dayIndex)
+                viewDay(scheduleData, useDeviceTimeZone)
+                updateHorizontalScrollingProgressLine(0)
             }
+        viewModel.dayMenuParameter.observe(this) { parameter ->
+            buildNavigationMenu(parameter.dayMenuEntries)
+            updateNavigationMenuSelection(numDays = parameter.dayMenuEntries.size, dayIndex = parameter.displayDayIndex)
+        }
+        viewModel.showHorizontalScrollingProgressLine.observe(this) { shouldShow ->
+            updateHorizontalScrollingProgressLine(shouldShow)
+        }
         viewModel.fahrplanEmptyParameter.observe(viewLifecycleOwner) { (scheduleVersion) ->
             val errorMessage = errorMessageFactory.getMessageForEmptySchedule(scheduleVersion)
             errorMessage.show(requireContext(), shouldShowLong = false)
         }
         viewModel.activateScheduleUpdateAlarm.observe(viewLifecycleOwner) { conferenceTimeFrame ->
-            FahrplanMisc.setUpdateAlarm(requireContext(), conferenceTimeFrame, isInitial = false, logging)
+            FahrplanMisc.setUpdateAlarm(
+                context = requireContext(),
+                conferenceTimeFrame = conferenceTimeFrame,
+                isInitial = false,
+                logging = logging,
+                onCancelScheduleNextFetch = AppRepository::deleteScheduleNextFetch,
+                onUpdateScheduleNextFetch = AppRepository::updateScheduleNextFetch,
+            )
         }
         viewModel.shareSimple.observe(viewLifecycleOwner) { formattedSession ->
             SessionSharer.shareSimple(requireContext(), formattedSession)
@@ -284,10 +312,37 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         super.onDestroy()
     }
 
+    private fun updateHorizontalScrollingProgressLine(scrollX: Int) {
+        val roomNameView = requireView().requireViewByIdCompat<LinearLayout>(R.id.roomNameLandscape)
+        val horizontalScrollView = requireView().requireViewByIdCompat<HorizontalSnapScrollView>(R.id.horizScroller)
+        val lineView = requireView().requireViewByIdCompat<View>(R.id.horizontalScrollingProgressLine)
+
+        // Get the width of the content inside the scrollView and the width of the scrollView itself
+        val contentWidth = horizontalScrollView.getChildAt(0).width
+        val roomNameViewWidth = roomNameView.width
+
+        // Calculate the scrollable width (total content width minus the visible part of the scrollView)
+        val scrollableWidth = contentWidth - roomNameViewWidth
+
+        if (scrollableWidth > 0) {
+            val maxTranslationX = roomNameViewWidth - lineView.width
+            val scrollRatio = scrollX.toFloat() / scrollableWidth
+            val newPosition = scrollRatio * maxTranslationX
+            lineView.translationX = newPosition
+        } else {
+            lineView.translationX = 0f
+        }
+    }
+
+    private fun updateHorizontalScrollingProgressLine(visible: Boolean) {
+        val lineView = requireView().requireViewByIdCompat<View>(R.id.horizontalScrollingProgressLine)
+        lineView.isInvisible = !visible
+    }
+
     /**
      * Updates the session data in the schedule view.
      */
-    private fun viewDay(scheduleData: ScheduleData, useDeviceTimeZone: Boolean, numDays: Int, dayIndex: Int) {
+    private fun viewDay(scheduleData: ScheduleData, useDeviceTimeZone: Boolean) {
         val layoutRoot = requireView()
         val horizontalScroller = layoutRoot.requireViewByIdCompat<HorizontalSnapScrollView>(R.id.horizScroller)
         horizontalScroller.scrollTo(0, 0)
@@ -307,7 +362,6 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
                 viewModel.preserveVerticalScrollPosition = false
             }
         }
-        updateNavigationMenuSelection(numDays, dayIndex)
     }
 
     private fun updateNavigationMenuSelection(numDays: Int, dayIndex: Int) {
@@ -330,35 +384,93 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         useDeviceTimeZone: Boolean,
     ) {
         val columnsLayout = horizontalScroller.getChildAt(0) as LinearLayout
-        // TODO Optimization: Track room names and check if they can be re-used with the updated scheduleData
         columnsLayout.removeAllViews()
-        val boxHeight = getNormalizedBoxHeight()
-        val layoutCalculator = LayoutCalculator(boxHeight)
         val context = horizontalScroller.context
         val roomDataList = scheduleData.roomDataList
+
+        // Calculate layout parameters for all sessions using LayoutCalculator
         val conference = Conference.ofSessions(scheduleData.allSessions)
+        val layoutCalculator = LayoutCalculator(standardHeight = getNormalizedBoxHeight())
+
+        val contentDescriptionFormatter = ContentDescriptionFormatter(ResourceResolver(context))
+        val sessionPropertiesFormatter = SessionPropertiesFormatter(ResourceResolver(context))
+        val isAlternativeHighlightingEnabled = AppRepository.readAlternativeHighlightingEnabled()
+
         for (roomIndex in roomDataList.indices) {
             val roomData = roomDataList[roomIndex]
             val layoutParamsBySession = layoutCalculator.calculateLayoutParams(roomData, conference)
-            val columnRecyclerView = RecyclerView(context).apply {
-                setHasFixedSize(true)
-                setFadingEdgeLength(0)
-                isNestedScrollingEnabled = false // enables flinging
-                layoutManager = LinearLayoutManager(context)
-                layoutParams = LayoutParams(columnWidth, WRAP_CONTENT)
-            }
-            val roomSessions = roomData.sessions
-            val adapter = SessionViewColumnAdapter(
-                sessions = roomSessions,
+
+            // Prepare the room column data with all necessary conversions done up front
+            val roomColumnData = prepareRoomColumnData(
+                context = context,
+                sessions = roomData.sessions,
                 layoutParamsBySession = layoutParamsBySession,
                 useDeviceTimeZone = useDeviceTimeZone,
-                drawer = sessionViewDrawer,
-                eventsHandler = this
+                isAlternativeHighlightingEnabled = isAlternativeHighlightingEnabled,
+                contentDescriptionFormatter = contentDescriptionFormatter,
+                sessionPropertiesFormatter = sessionPropertiesFormatter,
+                defaultBackgroundColorByTrackName = TrackBackgrounds.getTrackNameBackgroundColorDefaultPairs(context),
+                highlightBackgroundColorByTrackName = TrackBackgrounds.getTrackNameBackgroundColorHighlightPairs(context),
             )
-            columnRecyclerView.adapter = adapter
-            columnsLayout.addView(columnRecyclerView)
+
+            val roomColumnView = ComposeView(context).apply {
+                layoutParams = LayoutParams(columnWidth, WRAP_CONTENT)
+                setContent {
+                    RoomColumn(
+                        columnData = roomColumnData,
+                        onSessionClick = { sessionId ->
+                            val session = roomData.sessions.first { it.sessionId == sessionId }
+                            logging.d(LOG_TAG, """Click on: "${session.title}"""")
+                            onSessionClickListener?.onSessionClick(session.sessionId)
+                        },
+                        onSessionInteraction = { sessionId, interactionType ->
+                            val session = roomData.sessions.first { it.sessionId == sessionId }
+                            handleSessionInteraction(session, interactionType)
+                        }
+                    )
+                }
+            }
+            columnsLayout.addView(roomColumnView)
         }
     }
+
+    private fun handleSessionInteraction(session: Session, sessionInteractionType: SessionInteractionType) =
+        when (sessionInteractionType) {
+            TOGGLE_FAVORITE -> {
+                val updatedSession = session.copy(isHighlight = !session.isHighlight)
+                viewModel.updateFavorStatus(updatedSession)
+                updateMenuItems()
+            }
+
+            TOGGLE_ALARM -> {
+                lastSelectedSession = session // FIXME NPE on rotation while alarm time picker is opened
+                when (session.hasAlarm) {
+                    true -> viewModel.deleteAlarm(session)
+                    false -> viewModel.addAlarmWithChecks()
+                }
+                updateMenuItems()
+            }
+
+            ADD_TO_CALENDAR -> {
+                CalendarSharing(requireContext()).addToCalendar(session)
+            }
+
+            SHARE -> {
+                if (!BuildConfig.ENABLE_CHAOSFLIX_EXPORT) {
+                    viewModel.share(session)
+                } else {
+                    // Handled by submenu
+                }
+            }
+
+            SHARE_TEXT -> {
+                viewModel.share(session)
+            }
+
+            SHARE_JSON -> {
+                viewModel.shareToChaosflix(session)
+            }
+        }
 
     /**
      * Adds room title views as child views to the given [roomTitlesRowLayout].
@@ -441,12 +553,26 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         val timeTextColumn = requireView().requireViewByIdCompat<LinearLayout>(R.id.times_layout)
         timeTextColumn.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         timeTextColumn.removeAllViews()
+        val timeLinesLayout = requireView().requireViewByIdCompat<LinearLayout>(R.id.schedule_horizontal_times_lines_layout)
+        timeLinesLayout.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+        timeLinesLayout.removeAllViews()
         var timeTextView: View
-        for ((layout, height, titleText) in parameters) {
-            timeTextView = inflater.inflate(layout, null)
+        var timeLineView: View
+        for ((height, titleText, isNow) in parameters) {
+            timeTextView = inflater.inflate(R.layout.schedule_time_column_time_text, null)
             timeTextColumn.addView(timeTextView, MATCH_PARENT, height)
-            timeTextView.requireViewByIdCompat<TextView>(R.id.time).apply {
+            timeLineView = inflater.inflate(R.layout.schedule_horizontal_time_line, null)
+            timeLinesLayout.addView(timeLineView, MATCH_PARENT, height)
+            val textColorRes = if (isNow) R.color.schedule_time_column_item_text_emphasized else R.color.schedule_time_column_item_text_normal
+            val textColor = ContextCompat.getColor(timeTextView.context, textColorRes)
+            timeTextView.requireViewByIdCompat<TextView>(R.id.schedule_time_column_time_text_view).apply {
                 text = titleText
+                setTextColor(textColor)
+                if (isNow) {
+                    setBackgroundColor(ContextCompat.getColor(timeTextView.context, R.color.schedule_time_column_item_background_emphasized))
+                } else {
+                    setBackgroundResource(R.drawable.schedule_time_column_time_text_background_normal)
+                }
             }
         }
     }
@@ -458,23 +584,23 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         }
 
     private fun getNormalizedBoxHeight(): Int {
-        return (resources.getInteger(R.integer.box_height) * displayDensityScale).toInt()
+        return resources.getDimension(R.dimen.schedule_time_column_box_height).toInt()
     }
 
-    override fun onClick(view: View) {
-        val session = checkNotNull(view.tag) {
-            "A session must be assigned to the 'tag' attribute of the session view."
-        } as Session
-        logging.d(LOG_TAG, """Click on: "${session.title}"""")
-        onSessionClickListener?.onSessionClick(session.sessionId)
+    private fun calculateSessionHeight(session: Session): Int {
+        // This uses the same formula as LayoutCalculator.calculateDisplayDistance
+        return standardHeight * session.duration / LAYOUT_CALCULATOR_DIVISOR
     }
+
+    private val standardHeight: Int
+        get() = getNormalizedBoxHeight()
 
     /**
      * Builds the navigation menu for switching between days.
      * The [dayMenuEntries] can be passed both as an empty list or a list with entries.
      * The empty list is important for [updateNavigationMenuSelection] to work correctly.
      */
-    private fun buildNavigationMenu(dayMenuEntries: List<String>, numDays: Int) {
+    private fun buildNavigationMenu(dayMenuEntries: List<String>) {
         val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
         actionBar!!.navigationMode = NAVIGATION_MODE_LIST
         val arrayAdapter = ArrayAdapter(
@@ -483,7 +609,7 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
             dayMenuEntries
         )
         arrayAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_list_item)
-        actionBar.setListNavigationCallbacks(arrayAdapter, OnDaySelectedListener(numDays))
+        actionBar.setListNavigationCallbacks(arrayAdapter, OnDaySelectedListener(dayMenuEntries.size))
     }
 
     private fun showAlarmTimePicker() {
@@ -500,93 +626,29 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
     private fun onAlarmTimesIndexPicked(alarmTimesIndex: Int) {
         if (lastSelectedSession == null) {
             logging.e(LOG_TAG, "onAlarmTimesIndexPicked: session: null. alarmTimesIndex: $alarmTimesIndex")
-            throw NullPointerException("Session is null.")
+            throw MissingLastSelectedSessionException(alarmTimesIndex)
         } else {
             viewModel.addAlarm(lastSelectedSession!!, alarmTimesIndex)
             updateMenuItems()
         }
     }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        val menuItemIndex = item.itemId
-        val session = contextMenuView.tag as Session
-        lastSelectedSession = session // FIXME NPE on rotation while alarm time picker is opened
-        val context = requireContext()
-        when (menuItemIndex) {
-            CONTEXT_MENU_ITEM_ID_FAVORITES -> {
-                val updatedSession = session.copy(highlight = !session.highlight)
-                viewModel.updateFavorStatus(updatedSession)
-                sessionViewDrawer.setSessionBackground(updatedSession.highlight, updatedSession.track, contextMenuView)
-                SessionViewDrawer.setSessionTextColor(updatedSession.highlight, contextMenuView)
-                updateMenuItems()
-            }
-            CONTEXT_MENU_ITEM_ID_SET_ALARM -> {
-                viewModel.addAlarmWithChecks()
-            }
-            CONTEXT_MENU_ITEM_ID_DELETE_ALARM -> {
-                viewModel.deleteAlarm(session)
-                updateMenuItems()
-            }
-            CONTEXT_MENU_ITEM_ID_ADD_TO_CALENDAR -> {
-                CalendarSharing(context).addToCalendar(session)
-            }
-            CONTEXT_MENU_ITEM_ID_SHARE -> {
-                if (!BuildConfig.ENABLE_CHAOSFLIX_EXPORT) {
-                    viewModel.share(session)
-                }
-            }
-            CONTEXT_MENU_ITEM_ID_SHARE_TEXT -> {
-                viewModel.share(session)
-            }
-            CONTEXT_MENU_ITEM_ID_SHARE_JSON -> {
-                viewModel.shareToChaosflix(session)
-            }
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.fahrplan_menu, menu)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
+            R.id.menu_item_refresh -> viewModel.requestScheduleUpdate(isUserRequest = true)
+            else -> return false
         }
         return true
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.fahrplan_menu, menu)
-    }
-
-    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
-        return if (menuItem.itemId == R.id.menu_item_refresh) {
-            viewModel.requestScheduleUpdate(isUserRequest = true)
-            true
-        } else {
-            super.onOptionsItemSelected(menuItem)
-        }
     }
 
     private fun updateMenuItems() {
         // Toggles the icon for "add/delete favorite" or "add/delete alarm".
         // Triggers SessionDetailsFragment.onPrepareOptionsMenu to be called
         requireActivity().invalidateOptionsMenu()
-    }
-
-    override fun onCreateContextMenu(menu: ContextMenu, view: View, menuInfo: ContextMenuInfo?) {
-        super.onCreateContextMenu(menu, view, menuInfo)
-        contextMenuView = view
-        val session = view.tag as Session
-        if (session.highlight) {
-            menu.add(0, CONTEXT_MENU_ITEM_ID_FAVORITES, 0, getString(R.string.menu_item_title_unflag_as_favorite))
-        } else {
-            menu.add(0, CONTEXT_MENU_ITEM_ID_FAVORITES, 0, getString(R.string.menu_item_title_flag_as_favorite))
-        }
-        if (session.hasAlarm) {
-            menu.add(0, CONTEXT_MENU_ITEM_ID_DELETE_ALARM, 2, getString(R.string.menu_item_title_delete_alarm))
-        } else {
-            menu.add(0, CONTEXT_MENU_ITEM_ID_SET_ALARM, 1, getString(R.string.menu_item_title_set_alarm))
-        }
-        menu.add(0, CONTEXT_MENU_ITEM_ID_ADD_TO_CALENDAR, 3, getString(R.string.menu_item_title_add_to_calendar))
-        if (BuildConfig.ENABLE_CHAOSFLIX_EXPORT) {
-            val share = menu.addSubMenu(0, CONTEXT_MENU_ITEM_ID_SHARE, 4, getString(R.string.menu_item_title_share_session))
-            share.add(0, CONTEXT_MENU_ITEM_ID_SHARE_TEXT, 5, getString(R.string.menu_item_title_share_session_text))
-            share.add(0, CONTEXT_MENU_ITEM_ID_SHARE_JSON, 6, getString(R.string.menu_item_title_share_session_json))
-        } else {
-            menu.add(0, CONTEXT_MENU_ITEM_ID_SHARE, 4, getString(R.string.menu_item_title_share_session))
-        }
     }
 
     private fun showMissingPostNotificationsPermissionError() {
@@ -599,6 +661,12 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
 
     private fun showMissingScheduleExactAlarmsPermissionError() {
         Toast.makeText(requireContext(), R.string.alarms_disabled_schedule_exact_alarm_permission_missing, Toast.LENGTH_LONG).show()
+    }
+
+    private fun hideNoScheduleView() {
+        requireView()
+            .requireViewByIdCompat<View>(R.id.schedule_no_content_view)
+            .isVisible = false
     }
 
     private inner class OnDaySelectedListener(private val numDays: Int) : OnNavigationListener {
@@ -620,4 +688,122 @@ class FahrplanFragment : Fragment(), SessionViewEventsHandler {
         private fun runsAtLeastOnAndroidNougat() = Build.VERSION.SDK_INT > Build.VERSION_CODES.M
     }
 
+    private fun prepareRoomColumnData(
+        context: Context,
+        sessions: List<Session>,
+        layoutParamsBySession: Map<String, LinearLayout.LayoutParams>,
+        useDeviceTimeZone: Boolean,
+        isAlternativeHighlightingEnabled: Boolean,
+        contentDescriptionFormatter: ContentDescriptionFormatting,
+        sessionPropertiesFormatter: SessionPropertiesFormatting,
+        defaultBackgroundColorByTrackName: Map<String?, Int>,
+        highlightBackgroundColorByTrackName: Map<String?, Int>,
+    ): RoomColumnData {
+        // Prepare session data and spacings
+        val sessionDataList = mutableListOf<SessionCardData>()
+        val spacings = mutableListOf<Int>()
+
+        // Calculate initial spacing
+        val firstSession = sessions.firstOrNull()
+        if (firstSession != null) {
+            val firstParams = layoutParamsBySession[firstSession.sessionId]
+            val topMargin = firstParams?.topMargin ?: 0
+            spacings.add((topMargin / context.resources.displayMetrics.density).toInt())
+        }
+
+        // Process each session
+        sessions.forEachIndexed { index, session ->
+            val layoutParams = layoutParamsBySession[session.sessionId]
+
+            val backgroundColorResId = if (session.isHighlight) {
+                highlightBackgroundColorByTrackName[session.track]
+                    ?: R.color.track_background_highlight
+            } else {
+                defaultBackgroundColorByTrackName[session.track] ?: R.color.track_background_default
+            }
+
+            val textColorResId = if (session.isHighlight)
+                R.color.session_item_text_on_highlight_background
+            else
+                R.color.session_item_text_on_default_background
+
+            val horizontalPadding = sessionPadding
+            val verticalPadding = (horizontalPadding * 0.3).toInt()
+
+            val heightPx = layoutParams?.height ?: calculateSessionHeight(session)
+            val heightDp = (heightPx / context.resources.displayMetrics.density).toInt()
+            val showBorder = session.isHighlight && isAlternativeHighlightingEnabled
+
+            val titleContentDescription = contentDescriptionFormatter
+                .getTitleContentDescription(session.title)
+            val subtitleContentDescription = contentDescriptionFormatter
+                .getSubtitleContentDescription(session.subtitle)
+            val speakerNamesText = sessionPropertiesFormatter.getFormattedSpeakers(session)
+            val speakerNamesContentDescription = contentDescriptionFormatter
+                .getSpeakersContentDescription(session.speakers.size, speakerNamesText)
+            val languagesText = sessionPropertiesFormatter.getLanguageText(session)
+            val languagesContentDescription = contentDescriptionFormatter
+                .getLanguageContentDescription(session.language)
+            val trackNameContentDescription = contentDescriptionFormatter
+                .getTrackNameContentDescription(session.track)
+            val stateContentDescription = contentDescriptionFormatter
+                .getStateContentDescription(session, useDeviceTimeZone)
+
+            @Suppress("KotlinConstantConditions")
+            val sessionData = SessionCardData(
+                sessionId = session.sessionId,
+                title = SessionProperty(
+                    value = session.title,
+                    contentDescription = titleContentDescription,
+                ),
+                subtitle = SessionProperty(
+                    value = session.subtitle,
+                    contentDescription = subtitleContentDescription,
+                ),
+                speakerNames = SessionProperty(
+                    value = speakerNamesText,
+                    contentDescription = speakerNamesContentDescription,
+                ),
+                languages = SessionProperty(
+                    value = languagesText,
+                    contentDescription = languagesContentDescription,
+                ),
+                trackName = SessionProperty(
+                    value = session.track,
+                    contentDescription = trackNameContentDescription,
+                ),
+                recordingOptOut = SessionProperty(
+                    value = session.recordingOptOut,
+                    contentDescription = context.getString(R.string.session_item_no_video_content_description),
+                ),
+                stateContentDescription = stateContentDescription,
+                innerHorizontalPadding = horizontalPadding / context.resources.displayMetrics.density,
+                innerVerticalPadding = verticalPadding / context.resources.displayMetrics.density,
+                cardHeight = heightDp,
+                isFavored = session.isHighlight,
+                hasAlarm = session.hasAlarm,
+                showBorder = showBorder,
+                shouldShowShareSubMenu = BuildConfig.ENABLE_CHAOSFLIX_EXPORT,
+                backgroundColor = backgroundColorResId,
+                textColor = textColorResId,
+            )
+            sessionDataList.add(sessionData)
+
+            // Append spacing to the session except for the last one
+            if (index < sessions.size - 1) {
+                val bottomMargin = layoutParams?.bottomMargin ?: 0
+                spacings.add((bottomMargin / context.resources.displayMetrics.density).toInt())
+            }
+        }
+
+        return RoomColumnData(
+            sessionData = sessionDataList,
+            spacings = spacings,
+        )
+    }
+
 }
+
+private class MissingLastSelectedSessionException(alarmTimesIndex: Int) : NullPointerException(
+    "Last selected session is null for alarm times index = $alarmTimesIndex."
+)

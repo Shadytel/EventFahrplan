@@ -66,6 +66,7 @@ class ValidateableEditTextPreference : StyleableEditTextPreference {
             requireNotNull(editable)
             val url = editable.toString().trim()
             val validation = validationType.toValidation(url)
+            // TODO Disable the "OK" button if the URL is invalid.
             // Allow users to wipe their URL
             editText.error = if (url.isEmpty() || validation.isValid()) {
                 null
@@ -90,7 +91,7 @@ class ValidateableEditTextPreference : StyleableEditTextPreference {
                 Url.value -> Url
                 EngelsystemUrl.value -> EngelsystemUrl
                 // Fail at instantiation time not until when users input their data.
-                else -> throw NotImplementedError("Unknown validation type: $type.")
+                else -> throw UnknownUrlTypeException(type)
             }
         }
     }
@@ -99,7 +100,15 @@ class ValidateableEditTextPreference : StyleableEditTextPreference {
         ValidationType.Url -> UrlValidator(url)
         ValidationType.EngelsystemUrl -> EngelsystemUrlValidator(url)
         // Fails once the user submits their input. Late, but still good to know.
-        else -> throw NotImplementedError("Unknown validation type: $this.")
+        else -> throw UnknownValidationTypeException(this)
     }
 
 }
+
+private class UnknownUrlTypeException(type: Int) : IllegalArgumentException(
+    "Unknown url type: $type."
+)
+
+private class UnknownValidationTypeException(type: ValidationType) : IllegalArgumentException(
+    "Unknown validation type: $type."
+)
